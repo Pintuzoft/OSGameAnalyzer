@@ -1,0 +1,5 @@
+{
+    "SourcePawnLanguageServer.includesDirectories": [
+        "/home/codespace/sourcemodAPI/addons/sourcemod/scripting/include"
+    ]
+}
