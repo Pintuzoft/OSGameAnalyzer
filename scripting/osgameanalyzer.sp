@@ -32,9 +32,11 @@ public void OnPluginStart() {
 
 /* EVENTS */
 public void Event_RoundStart(Event event, const char[] name, bool dontBroadcast) {
-
+    resetPlayers();
 }
-
+public void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast) {
+    analyzeKills();
+}
 public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast) {
     int killer = GetClientOfUserId(GetEventInt(event, "attacker"));
     int victim = GetClientOfUserId(GetEventInt(event, "userid"));
@@ -62,9 +64,7 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 
     count[killer]++;
 }
-public void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast) {
 
-}
 
 /* METHODS */
 public void databaseConnect() {
