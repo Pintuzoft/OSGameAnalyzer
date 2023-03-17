@@ -35,6 +35,7 @@ public void Event_RoundStart(Event event, const char[] name, bool dontBroadcast)
     resetPlayers();
 }
 public void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast) {
+    printAllStoredVariables();
     analyzeKills();
 }
 public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast) {
@@ -173,5 +174,29 @@ public void resetPlayers() {
             killIsTeamKill[i][j] = false;
             killIsSuicide[i][j] = false;
         }
+    }
+}
+
+public void printAllStoredVariables() {
+    for (int i = 1; i <= MAXPLAYERS; i++) {
+        if (count[i] == 0) {
+            continue;
+        }
+
+        PrintToServer("Player %d", i);
+        PrintToServer("====================================");
+
+        for (int j = 0; j < count[i]; j++) {
+            PrintToServer("Kill %d:", j + 1);
+            PrintToServer("  Victim: %s", victimNames[i][j]);
+            PrintToServer("  Time: %d", killTimes[i][j]);
+            PrintToServer("  Weapon: %s", killWeapons[i][j]);
+            PrintToServer("  Headshot: %s", killIsHeadShot[i][j] ? "Yes" : "No");
+            PrintToServer("  Team Kill: %s", killIsTeamKill[i][j] ? "Yes" : "No");
+            PrintToServer("  Suicide: %s", killIsSuicide[i][j] ? "Yes" : "No");
+            PrintToServer("  Scoped: %s", killIsScoped[i][j] ? "Yes" : "No");
+        }
+
+        PrintToServer("====================================");
     }
 }
