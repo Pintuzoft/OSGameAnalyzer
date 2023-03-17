@@ -103,7 +103,8 @@ public void analyzeKills() {
         if (count[i] == 0) {
             continue;
         }
-
+        char killer[64];
+        GetClientName(i, killer, sizeof(killer));
         int quickFrags = 0;
         int lastFragTime = killTimes[i][0];
 
@@ -113,6 +114,7 @@ public void analyzeKills() {
                 quickFrags++;
                 if (quickFrags >= 3) {
                     // Handle the quick frags event
+                    PrintToConsoleAll ("Player %s has done %d frags within 5 seconds!", killer, quickFrags);
                 }
             } else {
                 quickFrags = 1;
@@ -122,21 +124,25 @@ public void analyzeKills() {
             // Check for unlikely weapon frags
             if (strcmp(killWeapons[i][j], "decoy") == 0 || strcmp(killWeapons[i][j], "flashbang") == 0 || strcmp(killWeapons[i][j], "smokegrenade") == 0) {
                 // Handle unlikely weapon event
+                PrintToConsoleAll ( "Player %s killed %s with %s", killer, victimNames[i][j], killWeapons[i][j] );
             }
 
             // Check for knife or taser frags
             if (strcmp(killWeapons[i][j], "knife") == 0 || strcmp(killWeapons[i][j], "taser") == 0) {
                 // Handle knife or taser event
+                PrintToConsoleAll ( "Player %s killed %s with %s", killer, victimNames[i][j], killWeapons[i][j] );
             }
 
             // Check for teamkills
             if (killIsTeamKill[i][j]) {
                 // Handle teamkill event
+                PrintToConsoleAll ( "Player %s teamkilled %s", killer, victimNames[i][j] );
             }
 
             // Check for noscope frags
             if ((strcmp(killWeapons[i][j], "awp") == 0 || strcmp(killWeapons[i][j], "ssg08") == 0) && !killIsScoped[i][j]) {
                 // Handle noscope event
+                PrintToConsoleAll ( "Player %s noscoped %s using %s", killer, victimNames[i][j], killWeapons[i][j] );
             }
 
             // Check for 2+ players fragged at the same time
@@ -148,6 +154,7 @@ public void analyzeKills() {
                 }
                 if (simultaneousFrags >= 2) {
                     // Handle 2+ players fragged at the same time event
+                    PrintToConsoleAll ( "Player %s fragged %d players at the same time/second", killer, simultaneousFrags );
                 }
             }
         }
