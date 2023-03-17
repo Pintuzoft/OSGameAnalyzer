@@ -1,129 +1,170 @@
 #include <sourcemod>
 #include <sdktools>
 #include <sdkhooks>
-#include <string>
 #include <cstrike>
 
 char error[255];
 Handle mysql = null;
 
 public Plugin myinfo = {
-	name = "OSGameAnalyzer",
-	author = "Pintuz",
-	description = "OldSwedes Game Analyzer plugin",
-	version = "0.01",
-	url = "https://github.com/Pintuzoft/OSGameAnalyzer"
-}
-
-struct Game {
-    public char server[64];
-    public char map[64];
-    public int round;
+    name = "OSGameAnalyzer",
+    author = "Pintuz",
+    description = "OldSwedes Game Analyzer plugin",
+    version = "0.01",
+    url = "https://github.com/Pintuzoft/OSGameAnalyzer"
 };
 
-struct Player {
-    public char name[64];
-    public int killCount;
-    public KillInfo kills[12];
-};
+char victimNames[MAXPLAYERS + 1][16][64];
+int killTimes[MAXPLAYERS + 1][16];
+char killWeapons[MAXPLAYERS + 1][16][64];
+bool killIsHeadShot[MAXPLAYERS + 1][16];
+bool killIsTeamKill[MAXPLAYERS + 1][16];
+bool killIsSuicide[MAXPLAYERS + 1][16];
+bool killIsScoped[MAXPLAYERS + 1][16];
+int count[MAXPLAYERS + 1];
 
-struct KillInfo {
-    public char victim[64];
-    public int time;
-	public char weapon[64];
-    public bool isHeadShot;
-    public bool isTeamKill;
-    public bool isSuicide;
-};
-
-Game game;
-public Player pList[MAXPLAYERS+1];
-
-public void OnPluginStart ( ) {
-    HookEvent ( "round_start", Event_RoundStart );
-    HookEvent ( "round_end", Event_RoundEnd );
-    HookEvent ( "player_death", Event_PlayerDeath );
+public void OnPluginStart() {
+    HookEvent("round_start", Event_RoundStart);
+    HookEvent("round_end", Event_RoundEnd);
+    HookEvent("player_death", Event_PlayerDeath);
+    resetPlayers();
 }
 
 /* EVENTS */
-public void Event_RoundStart ( Event event, const char[] name, bool dontBroadcast ) { 
-    
+public void Event_RoundStart(Event event, const char[] name, bool dontBroadcast) {
+
 }
-public void Event_PlayerDeath ( Event event, const char[] name, bool dontBroadcast ) {
-    char killerName[64];
-    char victimName[64];
+
+public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast) {
     int killer = GetClientOfUserId(GetEventInt(event, "attacker"));
     int victim = GetClientOfUserId(GetEventInt(event, "userid"));
 
-    int count;
-    if ( ! playerIsReal ( killer ) || ! playerIsReal ( victim ) ) {
+    if (!playerIsReal(killer) || !playerIsReal(victim)) {
         return;
     }
-//    Player p = pList[killer];
-//    count = p.killCount;
 
+    char killerName[64];
+    char victimName[64];
+    GetClientName(killer, killerName, sizeof(killerName));
+    GetClientName(victim, victimName, sizeof(victimName));
 
-//    GetClientName ( killer, killerName, sizeof(killerName) );
-//    GetClientName ( victim, victimName, sizeof(victimName) );
+    strcopy(victimNames[killer][count[killer]], sizeof(victimName), victimName);
+    killTimes[killer][count[killer]] = GetTime();
 
-//    player.kills[count].victim = victimName;
-//    player.kills[count].time = GetTime();
-//    player.kills[count].weapon = GetEventString(event, "weapon");
-//    player.kills[count].isHeadShot = GetEventInt(event, "headshot") == 1;
-//    player.kills[count].isTeamKill = GetEventInt(event, "assister") != 0;
-//    player.kills[count].isSuicide = killer == victim;
+    char weapon[64];
+    GetEventString(event, "weapon", weapon, sizeof(weapon));
+    strcopy(killWeapons[killer][count[killer]], sizeof(weapon), weapon);
 
-//    player.killCount++;
+    killIsHeadShot[killer][count[killer]] = GetEventInt(event, "headshot") == 1;
+    killIsTeamKill[killer][count[killer]] = GetEventInt(event, "assister") != 0;
+    killIsSuicide[killer][count[killer]] = killer == victim;
+    killIsScoped[killer][count[killer]] = GetEventInt(event, "scoped") == 1;
 
+    count[killer]++;
 }
-
-public void Event_RoundEnd ( Event event, const char[] name, bool dontBroadcast ) {
+public void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast) {
 
 }
 
 /* METHODS */
-public void databaseConnect ( ) {
-    if ( ( mysql = SQL_Connect ( "gameanalyzer", true, error, sizeof(error) ) ) != null ) {
-        PrintToServer ( "[OSGameAnalyzer]: Connected to mysql database!" );
+public void databaseConnect() {
+    if ((mysql = SQL_Connect("gameanalyzer", true, error, sizeof(error))) != null) {
+        PrintToServer("[OSGameAnalyzer]: Connected to mysql database!");
     } else {
-        PrintToServer ( "[OSGameAnalyzer]: Failed to connect to mysql database! (error: %s)", error );
+        PrintToServer("[OSGameAnalyzer]: Failed to connect to mysql database! (error: %s)", error);
     }
 }
 
-public void checkConnection ( ) {
-    if ( mysql == null || mysql == INVALID_HANDLE ) {
-        databaseConnect ( );
+public void checkConnection() {
+    if (mysql == null || mysql == INVALID_HANDLE) {
+        databaseConnect();
     }
 }
 
 /* return true if player is real */
-public bool playerIsReal ( int player ) {
-    return ( player > 0 &&
-        IsClientInGame ( player ) &&
-        ! IsClientSourceTV ( player ) );
+public bool playerIsReal(int player) {
+    return (player > 0 &&
+            player <= MAXPLAYERS &&
+            IsClientInGame(player) &&
+            !IsClientSourceTV(player));
 }
 
-
 /* isWarmup */
-public bool isWarmup ( ) {
-    if ( GameRules_GetProp ( "m_bWarmupPeriod" ) == 1 ) {
+public bool isWarmup() {
+    if (GameRules_GetProp("m_bWarmupPeriod") == 1) {
         return true;
     }
     return false;
 }
 
-/* analyze kills for each player and figure out if the kills is:
-   1: 3 or more in a short amount of time (quick frags) 
-   2: killer kills more than 1 player in the same second
-   3: killer makes a teamkill
-   4: weapon is a knife or a taser
-   5: weapon is a flashbang, smoke or decoy
+/* analyze kills for each player */
+public void analyzeKills() {
+    for (int i = 1; i <= MAXPLAYERS; i++) {
+        if (count[i] == 0) {
+            continue;
+        }
 
-   code is descriptive enough to understand what it does
- */
-public void analyzeKills ( ) {
+        int quickFrags = 0;
+        int lastFragTime = killTimes[i][0];
 
-  
-    
+        for (int j = 0; j < count[i]; j++) {
+            // Check for 3+ frags in a short amount of time
+            if (killTimes[i][j] - lastFragTime <= 5) {
+                quickFrags++;
+                if (quickFrags >= 3) {
+                    // Handle the quick frags event
+                }
+            } else {
+                quickFrags = 1;
+            }
+            lastFragTime = killTimes[i][j];
+
+            // Check for unlikely weapon frags
+            if (strcmp(killWeapons[i][j], "decoy") == 0 || strcmp(killWeapons[i][j], "flashbang") == 0 || strcmp(killWeapons[i][j], "smokegrenade") == 0) {
+                // Handle unlikely weapon event
+            }
+
+            // Check for knife or taser frags
+            if (strcmp(killWeapons[i][j], "knife") == 0 || strcmp(killWeapons[i][j], "taser") == 0) {
+                // Handle knife or taser event
+            }
+
+            // Check for teamkills
+            if (killIsTeamKill[i][j]) {
+                // Handle teamkill event
+            }
+
+            // Check for noscope frags
+            if ((strcmp(killWeapons[i][j], "awp") == 0 || strcmp(killWeapons[i][j], "ssg08") == 0) && !killIsScoped[i][j]) {
+                // Handle noscope event
+            }
+
+            // Check for 2+ players fragged at the same time
+            if (j < count[i] - 1 && killTimes[i][j] == killTimes[i][j + 1]) {
+                int simultaneousFrags = 1;
+                while (j < count[i] - 1 && killTimes[i][j] == killTimes[i][j + 1]) {
+                    simultaneousFrags++;
+                    j++;
+                }
+                if (simultaneousFrags >= 2) {
+                    // Handle 2+ players fragged at the same time event
+                }
+            }
+        }
+    }
 }
- 
+
+
+public void resetPlayers() {
+    for (int i = 1; i <= MAXPLAYERS; i++) {
+        count[i] = 0;
+        for (int j = 0; j < 16; j++) {
+            victimNames[i][j][0] = '\0';
+            killTimes[i][j] = 0;
+            killWeapons[i][j][0] = '\0';
+            killIsHeadShot[i][j] = false;
+            killIsTeamKill[i][j] = false;
+            killIsSuicide[i][j] = false;
+        }
+    }
+}
