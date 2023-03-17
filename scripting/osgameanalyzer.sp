@@ -59,7 +59,11 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
     strcopy(killWeapons[killer][count[killer]], sizeof(weapon), weapon);
 
     killIsHeadShot[killer][count[killer]] = GetEventInt(event, "headshot") == 1;
-    killIsTeamKill[killer][count[killer]] = GetEventInt(event, "assister") != 0;
+    if ( GetClientTeam(killer) == GetClientTeam(victim) ) {
+        killIsTeamKill[killer][count[killer]] = true;
+    } else {
+        killIsTeamKill[killer][count[killer]] = false;
+    }
     killIsSuicide[killer][count[killer]] = killer == victim;
     killIsScoped[killer][count[killer]] = GetEventInt(event, "scoped") == 1;
 
