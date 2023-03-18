@@ -85,6 +85,7 @@ public void removeGrenade ( int grenade ) {
     if (index != -1) {
         grenadeList.Erase(index);
     }
+    PrintToChatAll ("Grenade removed: %d", grenade);
 }
 public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast) {
     int killer = GetClientOfUserId(GetEventInt(event, "attacker"));
