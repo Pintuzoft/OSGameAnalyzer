@@ -14,12 +14,7 @@ public Plugin myinfo = {
     version = "0.01",
     url = "https://github.com/Pintuzoft/OSGameAnalyzer"
 };
-
-struct Grenade {
-    public int index;
-    public int thrower;
-};
-
+ 
 char victimNames[MAXPLAYERS + 1][16][64];
 int killTimes[MAXPLAYERS + 1][16];
 char killWeapons[MAXPLAYERS + 1][16][64];
@@ -86,12 +81,9 @@ public void Event_TagrenadeDetonate(Event event, const char[] name, bool dontBro
     removeGrenade ( GetEventInt(event, "entityid") );
 }
 public void removeGrenade ( int grenade ) {
-    for (int i = 0; i < grenadeList.Length; i++) {
-        if (grenadeList.Get(i) == grenade) {
-            grenadeList.Erase(i);
-            PrintToChatAll ("Grenade removed: %d", grenade);
-            return;
-        }
+    int index = grenadeList.FindValue(grenade);
+    if (index != -1) {
+        grenadeList.Erase(index);
     }
 }
 public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast) {
