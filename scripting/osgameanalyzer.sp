@@ -87,6 +87,8 @@ public void removeGrenade ( int grenade ) {
     }
     PrintToChatAll ("Grenade removed: %d", grenade);
 }
+
+
 public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast) {
     int killer = GetClientOfUserId(GetEventInt(event, "attacker"));
     int victim = GetClientOfUserId(GetEventInt(event, "userid"));
@@ -102,12 +104,20 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 
     PrintToChatAll ("Killer: %s, Victim: %s", killerName, victimName);
 
+    /* if grenade get the entity id */
+    int weapon = GetEventInt(event, "weapon");
+    if (weapon == 0) {
+        int grenade = GetEventInt(event, "weaponid");
+
+        PrintToChatAll ("[Event_PlayerDeath]: Found Grenade: %d", grenade);
+    }
+
     strcopy(victimNames[killer][count[killer]], sizeof(victimName), victimName);
     killTimes[killer][count[killer]] = GetTime();
 
-    char weapon[64];
-    GetEventString(event, "weapon", weapon, sizeof(weapon));
-    strcopy(killWeapons[killer][count[killer]], sizeof(weapon), weapon);
+    char weaponName[64];
+    GetEventString(event, "weapon", weaponName, sizeof(weaponName));
+    strcopy(killWeapons[killer][count[killer]], sizeof(weaponName), weaponName);
 
     killIsHeadShot[killer][count[killer]] = GetEventInt(event, "headshot") == 1;
     if ( GetClientTeam(killer) == GetClientTeam(victim) ) {
