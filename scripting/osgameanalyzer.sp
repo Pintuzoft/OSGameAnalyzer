@@ -15,6 +15,11 @@ public Plugin myinfo = {
     url = "https://github.com/Pintuzoft/OSGameAnalyzer"
 };
 
+struct Grenade {
+    public int index;
+    public int thrower;
+};
+
 char victimNames[MAXPLAYERS + 1][16][64];
 int killTimes[MAXPLAYERS + 1][16];
 char killWeapons[MAXPLAYERS + 1][16][64];
@@ -80,7 +85,15 @@ public void Event_DecoyDetonate(Event event, const char[] name, bool dontBroadca
 public void Event_TagrenadeDetonate(Event event, const char[] name, bool dontBroadcast) {
     removeGrenade ( GetEventInt(event, "entityid") );
 }
-
+public void removeGrenade ( int grenade ) {
+    for (int i = 0; i < grenadeList.Length; i++) {
+        if (grenadeList.Get(i) == grenade) {
+            grenadeList.Erase(i);
+            PrintToChatAll ("Grenade removed: %d", grenade);
+            return;
+        }
+    }
+}
 public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast) {
     int killer = GetClientOfUserId(GetEventInt(event, "attacker"));
     int victim = GetClientOfUserId(GetEventInt(event, "userid"));
@@ -93,6 +106,8 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
     char victimName[64];
     GetClientName(killer, killerName, sizeof(killerName));
     GetClientName(victim, victimName, sizeof(victimName));
+
+    PrintToChatAll ("Killer: %s, Victim: %s", killerName, victimName);
 
     strcopy(victimNames[killer][count[killer]], sizeof(victimName), victimName);
     killTimes[killer][count[killer]] = GetTime();
@@ -170,7 +185,7 @@ public void analyzeKills() {
             lastFragTime = killTimes[i][j];
 
             // Check for unlikely weapon frags
-            if (weaponMatches(killWeapons[i][j], "decoy|flashbang|smokegrenade")) {
+            if (weaponMatches(killWeapons[i][j], "decoy|flashbang|smokegrenade|hegrenade|incgrenade|molotov|tagrenade")) {
                 // Handle unlikely weapon event
                 PrintToConsoleAll ( "Player %s killed %s with %s", killer, victimNames[i][j], killWeapons[i][j] );
             }
@@ -236,10 +251,3 @@ public bool weaponMatches(const char[] weapon, const char[] pattern) {
     return matches;
 }
 
-public void removeGrenade ( int grenade ) {
-    int index = grenadeList.FindValue(grenade);
-    if (index != -1) {
-        grenadeList.Erase(index);
-    }
-    PrintToChatAll ( "Grenade %d removed from list", grenade );
-}
