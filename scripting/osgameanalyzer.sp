@@ -2,6 +2,7 @@
 #include <sdktools>
 #include <sdkhooks>
 #include <cstrike>
+#include <regex>
 
 char error[255];
 Handle mysql = null;
@@ -23,10 +24,25 @@ bool killIsSuicide[MAXPLAYERS + 1][16];
 bool killIsScoped[MAXPLAYERS + 1][16];
 int count[MAXPLAYERS + 1];
 
+ArrayList grenadeList;
+
 public void OnPluginStart() {
+    grenadeList = new ArrayList();
     HookEvent("round_start", Event_RoundStart);
     HookEvent("round_end", Event_RoundEnd);
     HookEvent("player_death", Event_PlayerDeath);
+
+    HookEvent("grenade_thrown", Event_GrenadeThrown);
+    HookEvent("hegrenade_detonate", Event_HEGrenadeDetonate);
+    HookEvent("flashbang_detonate", Event_FlashbangDetonate);
+    HookEvent("smokegrenade_detonate", Event_SmokegrenadeDetonate);
+    HookEvent("inferno_startburn", Event_IncendiaryGrenadeDetonate);
+    HookEvent("molotov_detonate", Event_MolotovDetonate);
+    HookEvent("decoy_detonate", Event_DecoyDetonate);
+    HookEvent("tagrenade_detonate", Event_TagrenadeDetonate);
+
+
+
     resetPlayers();
 }
 
@@ -35,9 +51,36 @@ public void Event_RoundStart(Event event, const char[] name, bool dontBroadcast)
     resetPlayers();
 }
 public void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast) {
-    printAllStoredVariables();
     analyzeKills();
 }
+
+public void Event_GrenadeThrown(Event event, const char[] name, bool dontBroadcast) {
+    int grenade = GetEventInt(event, "entityid");
+    grenadeList.Push(grenade);
+    PrintToChatAll ("Grenade thrown: %d", grenade);
+}
+public void Event_HEGrenadeDetonate(Event event, const char[] name, bool dontBroadcast) {
+    removeGrenade ( GetEventInt(event, "entityid") );
+}
+public void Event_FlashbangDetonate(Event event, const char[] name, bool dontBroadcast) {
+    removeGrenade ( GetEventInt(event, "entityid") );
+}
+public void Event_SmokegrenadeDetonate(Event event, const char[] name, bool dontBroadcast) {
+    removeGrenade ( GetEventInt(event, "entityid") );
+}
+public void Event_IncendiaryGrenadeDetonate(Event event, const char[] name, bool dontBroadcast) {
+    removeGrenade ( GetEventInt(event, "entityid") );
+}
+public void Event_MolotovDetonate(Event event, const char[] name, bool dontBroadcast) {
+    removeGrenade ( GetEventInt(event, "entityid") );
+}
+public void Event_DecoyDetonate(Event event, const char[] name, bool dontBroadcast) {
+    removeGrenade ( GetEventInt(event, "entityid") );
+}
+public void Event_TagrenadeDetonate(Event event, const char[] name, bool dontBroadcast) {
+    removeGrenade ( GetEventInt(event, "entityid") );
+}
+
 public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast) {
     int killer = GetClientOfUserId(GetEventInt(event, "attacker"));
     int victim = GetClientOfUserId(GetEventInt(event, "userid"));
@@ -127,13 +170,13 @@ public void analyzeKills() {
             lastFragTime = killTimes[i][j];
 
             // Check for unlikely weapon frags
-            if (strcmp(killWeapons[i][j], "decoy") == 0 || strcmp(killWeapons[i][j], "flashbang") == 0 || strcmp(killWeapons[i][j], "smokegrenade") == 0) {
+            if (weaponMatches(killWeapons[i][j], "decoy|flashbang|smokegrenade")) {
                 // Handle unlikely weapon event
                 PrintToConsoleAll ( "Player %s killed %s with %s", killer, victimNames[i][j], killWeapons[i][j] );
             }
 
             // Check for knife or taser frags
-            if (strcmp(killWeapons[i][j], "knife") == 0 || strcmp(killWeapons[i][j], "taser") == 0) {
+            if (weaponMatches(killWeapons[i][j], ".*knife|taser")) {
                 // Handle knife or taser event
                 PrintToConsoleAll ( "Player %s killed %s with %s", killer, victimNames[i][j], killWeapons[i][j] );
             }
@@ -180,27 +223,23 @@ public void resetPlayers() {
         }
     }
 }
-
-public void printAllStoredVariables() {
-    for (int i = 1; i <= MAXPLAYERS; i++) {
-        if (count[i] == 0) {
-            continue;
-        }
-
-        PrintToServer("Player %d", i);
-        PrintToServer("====================================");
-
-        for (int j = 0; j < count[i]; j++) {
-            PrintToServer("Kill %d:", j + 1);
-            PrintToServer("  Victim: %s", victimNames[i][j]);
-            PrintToServer("  Time: %d", killTimes[i][j]);
-            PrintToServer("  Weapon: %s", killWeapons[i][j]);
-            PrintToServer("  Headshot: %s", killIsHeadShot[i][j] ? "Yes" : "No");
-            PrintToServer("  Team Kill: %s", killIsTeamKill[i][j] ? "Yes" : "No");
-            PrintToServer("  Suicide: %s", killIsSuicide[i][j] ? "Yes" : "No");
-            PrintToServer("  Scoped: %s", killIsScoped[i][j] ? "Yes" : "No");
-        }
-
-        PrintToServer("====================================");
+ 
+public bool weaponMatches(const char[] weapon, const char[] pattern) {
+    Handle regex = CompileRegex(pattern);
+    if (regex == INVALID_HANDLE) {
+        return false;
     }
+
+    bool matches = MatchRegex(regex, weapon) != -1;
+    CloseHandle(regex);
+
+    return matches;
+}
+
+public void removeGrenade ( int grenade ) {
+    int index = grenadeList.FindValue(grenade);
+    if (index != -1) {
+        grenadeList.Erase(index);
+    }
+    PrintToChatAll ( "Grenade %d removed from list", grenade );
 }
