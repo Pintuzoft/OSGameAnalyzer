@@ -132,9 +132,11 @@ public void addGrenade ( int player, char grenade[64] ) {
 }
 
 public void printGrenades ( int player ) {
-    PrintToConsoleAll ("printGrenades: %d", player);
+    char playerName[64];
+    GetClientName(player, playerName, sizeof(playerName));
+    PrintToConsoleAll ("printGrenades: %s", playerName);
     for ( int i = 0; i < 4; i++ ) {
-        PrintToConsoleAll (" - Grenade: %d", grenades[player][i]);
+        PrintToConsoleAll (" - Grenade: %s", grenades[player][i]);
     }
 }
 
