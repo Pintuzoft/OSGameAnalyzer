@@ -2,7 +2,6 @@
 #include <sdktools>
 #include <sdkhooks>
 #include <cstrike>
-#include <regex>
 
 #define BOUNCE_TIME_THRESHOLD 0.5
 
@@ -109,18 +108,23 @@ public void Event_GrenadeBounce(Event event, const char[] name, bool dontBroadca
     int ownerEntity = GetEntPropEnt(grenadeEntity, Prop_Send, "m_hOwnerEntity");
     int owner = GetClientOfEnt(ownerEntity);
 
-    if (weaponMatches(weapon, ".*(hegrenade|decoy|flashbang|smokegrenade|molotov|incgrenade).*")) {
+    if (weaponMatches(weapon, "hegrenade") || 
+        weaponMatches(weapon, "decoy") || 
+        weaponMatches(weapon, "flashbang") || 
+        weaponMatches(weapon, "smokegrenade") || 
+        weaponMatches(weapon, "molotov") || 
+        weaponMatches(weapon, "incgrenade")) {
         g_LastBouncedGrenade[owner] = grenadeEntity;
 
-        if (weaponMatches(weapon, "\\bhegrenade\\b")) {
+        if (weaponMatches(weapon, "hegrenade")) {
             g_LastHEGrenadeBounceTime[owner] = GetGameTime();
-        } else if (weaponMatches(weapon, "\\bdecoy\\b")) {
+        } else if (weaponMatches(weapon, "decoy")) {
             g_LastDecoyBounceTime[owner] = GetGameTime();
-        } else if (weaponMatches(weapon, "\\bflashbang\\b")) {
+        } else if (weaponMatches(weapon, "flashbang")) {
             g_LastFlashbangBounceTime[owner] = GetGameTime();
-        } else if (weaponMatches(weapon, "\\bsmokegrenade\\b")) {
+        } else if (weaponMatches(weapon, "smokegrenade")) {
             g_LastSmokeGrenadeBounceTime[owner] = GetGameTime();
-        } else if (weaponMatches(weapon, "\\b(molotov|incgrenade)\\b")) {
+        } else if (weaponMatches(weapon, "molotov") || weaponMatches(weapon, "incgrenade")) {
             g_LastMolotovBounceTime[owner] = GetGameTime();
         }
     }
@@ -158,31 +162,31 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
     if (grenadeEntity == g_LastBouncedGrenade[killer]) {
     PrintToConsoleAll ( "1: %s", weapon );
         float gameTime = GetGameTime();
-        if (weaponMatches(weapon, "\\bhegrenade\\b")) {
+        if (weaponMatches(weapon, "hegrenade")) {
     PrintToConsoleAll ( "2:" );
             if (gameTime - g_LastHEGrenadeBounceTime[killer] < BOUNCE_TIME_THRESHOLD) {
                 // Player was killed by the impact of an HE grenade
                 PrintToChatAll ("Killed by HE grenade");
             }
-        } else if (weaponMatches(weapon, "\\bdecoy\\b")) {
+        } else if (weaponMatches(weapon, "decoy")) {
     PrintToConsoleAll ( "3:" );
             if (gameTime - g_LastDecoyBounceTime[killer] < BOUNCE_TIME_THRESHOLD) {
                 // Player was killed by the impact of a decoy grenade
                 PrintToChatAll ("Killed by decoy grenade");
             }
-        } else if (weaponMatches(weapon, "\\bflashbang\\b")) {
+        } else if (weaponMatches(weapon, "flashbang")) {
     PrintToConsoleAll ( "4:" );
             if (gameTime - g_LastFlashbangBounceTime[killer] < BOUNCE_TIME_THRESHOLD) {
                 // Player was killed by the impact of a flashbang grenade
                 PrintToChatAll ("Killed by flashbang grenade");
             }
-        } else if (weaponMatches(weapon, "\\bsmokegrenade\\b")) {
+        } else if (weaponMatches(weapon, "smokegrenade")) {
     PrintToConsoleAll ( "5:" );
             if (gameTime - g_LastSmokeGrenadeBounceTime[killer] < BOUNCE_TIME_THRESHOLD) {
                 // Player was killed by the impact of a smoke grenade
                 PrintToChatAll ("Killed by smoke grenade");
             }
-        } else if (weaponMatches(weapon, "\\b(molotov|incgrenade)\\b")) {
+        } else if (weaponMatches(weapon, "molotov") || weaponMatches(weapon, "incgrenade") ) {
     PrintToConsoleAll ( "6:" );
             if (gameTime - g_LastMolotovBounceTime[killer] < BOUNCE_TIME_THRESHOLD) {
                 // Player was killed by the impact of a molotov or incendiary grenade
@@ -308,16 +312,8 @@ public void resetPlayers() {
     }
 }
  
-public bool weaponMatches(const char[] weapon, const char[] pattern) {
-    Handle regex = CompileRegex(pattern);
-    if (regex == INVALID_HANDLE) {
-        return false;
-    }
-
-    bool matches = MatchRegex(regex, weapon) != -1;
-    CloseHandle(regex);
-
-    return matches;
+bool weaponMatches(const char[] weapon, const char[] pattern) {
+    return StrContains(weapon, pattern) != -1;
 }
 
 public int GetClientOfEnt(int entity) {
