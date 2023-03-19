@@ -129,6 +129,7 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
     killIsSuicide[killer][count[killer]] = killer == victim;
     killIsScoped[killer][count[killer]] = GetEventInt(event, "scoped") == 1;
 
+        PrintToConsoleAll("0");
     if (weaponMatches(weapon, "hegrenade") || 
         weaponMatches(weapon, "flashbang") || 
         weaponMatches(weapon, "smokegrenade") || 
@@ -139,18 +140,25 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
     
             int grenade = findGrenade(killer);
 
+        PrintToConsoleAll("0");
+
             if (grenade != -1) {
+        PrintToConsoleAll("1");
                 char nadeWeapon[64];
                 GetEntPropString(grenade, Prop_Send, "m_iClassname", nadeWeapon, sizeof(nadeWeapon));
                 
 
                 if ( strcmp(nadeWeapon, weapon, false) == 0 ) {
+        PrintToConsoleAll("2");
                     PrintToChatAll ("Grenade matches: %d: %s:%s", grenade, nadeWeapon, weapon);
                 } else {
+        PrintToConsoleAll("3");
                     PrintToChatAll ("Grenade doesn't match: %d: %s:%s", grenade, nadeWeapon, weapon);
                 }
+        PrintToConsoleAll("4");
 
             }
+        PrintToConsoleAll("5");
 
 
 //        int grenadeEntity = GetEventInt(event, "inflictor_entindex");
@@ -165,6 +173,7 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 //            WritePackString(pack, weapon);
 //        }
     }
+        PrintToConsoleAll("6");
     
     count[killer]++;
 }
