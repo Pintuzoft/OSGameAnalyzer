@@ -29,11 +29,6 @@ int count[MAXPLAYERS + 1];
 int grenades[MAXPLAYERS + 1][4];
 
 public void OnPluginStart() {
-    for ( int i = 1; i <= MAXPLAYERS; i++ ) {
-        for ( int j = 0; j < 4; j++ ) {
-            grenades[i][j] = 0;
-        }
-    }
     HookEvent("round_start", Event_RoundStart);
     HookEvent("round_end", Event_RoundEnd);
     HookEvent("player_death", Event_PlayerDeath);
@@ -48,6 +43,8 @@ public void OnPluginStart() {
     HookEvent("tagrenade_detonate", Event_TagrenadeDetonate);
 
     resetPlayers();
+    resetGrenades();
+
 }
 
 /* EVENTS */
@@ -94,10 +91,11 @@ public void Event_TagrenadeDetonate(Event event, const char[] name, bool dontBro
     removeGrenade ( player, GetEventInt(event, "entityid") );
 }
 public void removeGrenade ( int player, int grenade ) {
+    PrintToConsoleAll ("Grenade remove: %d", grenade);
     for ( int i = 0; i < 4; i++ ) {
         if ( grenades[player][i] == grenade ) {
             grenades[player][i] = 0;
-            PrintToChatAll ("Grenade removed: %d", grenade);
+            PrintToConsoleAll (" - Grenade removed: %d", grenade);
             return;
         }
     }
@@ -107,11 +105,11 @@ public void addGrenade ( int player, int grenade ) {
     for ( int i = 0; i < 4; i++ ) {
         if ( grenades[player][i] == 0 ) {
             grenades[player][i] = grenade;
-            PrintToChatAll (" - Grenade added: %d", grenade);
+            PrintToConsoleAll (" - Grenade added: %d", grenade);
             return;
         }
     }
-    PrintToChatAll (" - Not added!");
+    PrintToConsoleAll (" - Not added!");
 }
 
 public int findGrenade ( int player, char weapon[64] ) {
