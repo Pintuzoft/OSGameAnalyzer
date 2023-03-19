@@ -106,6 +106,7 @@ public void addGrenade ( int player, int grenade ) {
         if ( grenades[player][i] == 0 ) {
             grenades[player][i] = grenade;
             PrintToConsoleAll (" - Grenade added: %d", grenade);
+            printGrenades ( player );
             return;
         }
     }
