@@ -161,14 +161,12 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
         weaponMatches(weapon, "incendiarygrenade") || 
         weaponMatches(weapon, "molotov") || 
         weaponMatches(weapon, "tagrenade")) {
-    
      
-        PrintToChatAll ( "1" );
         for ( int i = 0; i < 4; i++ ) {
             PrintToChatAll ( "2" );
             if ( strcmp(grenades[killer][i], weapon) == 0 ) {
-                 PrintToChatAll ( "[OSGameAnalyzer]: %s killed %s with the impact of a %s", killerName, victimName, weapon);
-                 
+                PrintToChatAll ( "[OSGameAnalyzer]: %s killed %s with the impact of a %s", killerName, victimName, weapon);
+                continue;
             }
         }
     }
@@ -185,8 +183,7 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 //            WritePackString(pack, weapon);
 //        }
   
-    PrintToChatAll ( "6" );
-    
+  
     count[killer]++;
 }
 
