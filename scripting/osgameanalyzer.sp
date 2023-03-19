@@ -26,14 +26,15 @@ bool killIsImpact[MAXPLAYERS + 1][16];
 int count[MAXPLAYERS + 1];
 
 ArrayList grenadeList;
-int g_LastBouncedGrenade = -1;
-float g_LastHEGrenadeBounceTime = -1.0;
-float g_LastDecoyBounceTime = -1.0;
-float g_LastFlashbangBounceTime = -1.0;
-float g_LastSmokegrenadeBounceTime = -1.0;
-float g_LastIncendiaryGrenadeBounceTime = -1.0;
-float g_LastMolotovBounceTime = -1.0;
-float g_LastTagrenadeBounceTime = -1.0;
+int g_LastBouncedGrenade[MAXPLAYERS + 1];
+float g_LastHEGrenadeBounceTime[MAXPLAYERS + 1];
+float g_LastDecoyBounceTime[MAXPLAYERS + 1];
+float g_LastFlashbangBounceTime[MAXPLAYERS + 1];
+float g_LastSmokegrenadeBounceTime[MAXPLAYERS + 1];
+float g_LastIncendiaryGrenadeBounceTime[MAXPLAYERS + 1];
+float g_LastMolotovBounceTime[MAXPLAYERS + 1];
+float g_LastTagrenadeBounceTime[MAXPLAYERS + 1];
+
 
 
 
@@ -106,28 +107,28 @@ public void Event_GrenadeBounce(Event event, const char[] name, bool dontBroadca
     PrintToChatAll ("Grenade bounced: %d", entity);
 
     if (weaponMatches(name, ".*grenade.*")) {
-        g_LastBouncedGrenade = entity;
+        g_LastBouncedGrenade[entity] = entity;
 
         if (weaponMatches(name, ".*hegrenade.*")) {
-            g_LastHEGrenadeBounceTime = GetGameTime();
+            g_LastHEGrenadeBounceTime[entity] = GetGameTime();
 
         } else if (weaponMatches(name, ".*decoy.*")) {
-            g_LastDecoyBounceTime = GetGameTime();
+            g_LastDecoyBounceTime[entity] = GetGameTime();
         
         } else if (weaponMatches(name, ".*flashbang.*")) {
-            g_LastFlashbangBounceTime = GetGameTime();
+            g_LastFlashbangBounceTime[entity] = GetGameTime();
         
         } else if (weaponMatches(name, ".*smokegrenade.*")) {
-            g_LastSmokegrenadeBounceTime = GetGameTime();
+            g_LastSmokegrenadeBounceTime[entity] = GetGameTime();
         
         } else if (weaponMatches(name, ".*incendiarygrenade.*")) {
-            g_LastIncendiaryGrenadeBounceTime = GetGameTime();
+            g_LastIncendiaryGrenadeBounceTime[entity] = GetGameTime();
         
         } else if (weaponMatches(name, ".*molotov.*")) {
-            g_LastMolotovBounceTime = GetGameTime();
+            g_LastMolotovBounceTime[entity] = GetGameTime();
         
         } else if (weaponMatches(name, ".*tagrenade.*")) {
-            g_LastTagrenadeBounceTime = GetGameTime();
+            g_LastTagrenadeBounceTime[entity] = GetGameTime();
         }
     }
 }
@@ -153,32 +154,44 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
     char weapon[64];
     GetEventString(event, "weapon", weapon, sizeof(weapon));
     strcopy(killWeapons[killer][count[killer]], sizeof(weapon), weapon);
-    
+    PrintToConsoleAll ("0:");
     if (weaponMatches(weapon, ".*grenade.*")) {
+    PrintToConsoleAll ("1:");
         float bounceTime = -1.0;
 
         if (weaponMatches(weapon, ".*hegrenade.*")) {
-            bounceTime = g_LastHEGrenadeBounceTime;
+    PrintToConsoleAll ("2:");
+            bounceTime = g_LastHEGrenadeBounceTime[killer];
         } else if (weaponMatches(weapon, ".*decoy.*")) {
-            bounceTime = g_LastDecoyBounceTime;
+    PrintToConsoleAll ("3:");
+            bounceTime = g_LastDecoyBounceTime[killer];
         } else if (weaponMatches(weapon, ".*flashbang.*")) {
-            bounceTime = g_LastFlashbangBounceTime;
+    PrintToConsoleAll ("4:");
+            bounceTime = g_LastFlashbangBounceTime[killer];
         } else if (weaponMatches(weapon, ".*smokegrenade.*")) {
-            bounceTime = g_LastSmokegrenadeBounceTime;
+    PrintToConsoleAll ("5:");
+            bounceTime = g_LastSmokegrenadeBounceTime[killer];
         } else if (weaponMatches(weapon, ".*incendiarygrenade.*")) {
-            bounceTime = g_LastIncendiaryGrenadeBounceTime;
+    PrintToConsoleAll ("6:");
+            bounceTime = g_LastIncendiaryGrenadeBounceTime[killer];
         } else if (weaponMatches(weapon, ".*molotov.*")) {
-            bounceTime = g_LastMolotovBounceTime;
+    PrintToConsoleAll ("7:");
+            bounceTime = g_LastMolotovBounceTime[killer];
         } else if (weaponMatches(weapon, ".*tagrenade.*")) {
-            bounceTime = g_LastTagrenadeBounceTime;
+    PrintToConsoleAll ("8:");
+            bounceTime = g_LastTagrenadeBounceTime[killer];
         }
 
+    PrintToConsoleAll ("9:");
         // Check if the bounce timestamp is very recent (e.g., within 0.5 seconds)
         if (bounceTime != -1.0 && GetGameTime() - bounceTime <= 0.5) {
+    PrintToConsoleAll ("10:");
             // Handle the case where the player was killed by the grenade impact
-            PrintToServer(" - Player %d was killed by the impact of grenade %d", victim, g_LastBouncedGrenade);
+            PrintToServer(" - Player %d was killed by the impact of grenade %d", victim, g_LastBouncedGrenade[killer]);
         }
+    PrintToConsoleAll ("11:");
     }
+    PrintToConsoleAll ("12:");
 
     killIsHeadShot[killer][count[killer]] = GetEventInt(event, "headshot") == 1;
     if ( GetClientTeam(killer) == GetClientTeam(victim) ) {
