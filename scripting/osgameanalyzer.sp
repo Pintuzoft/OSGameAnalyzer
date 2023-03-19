@@ -166,7 +166,7 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
     strcopy(killWeapons[killer][count[killer]], sizeof(weapon), weapon);
     PrintToConsoleAll ("0:");
     if (weaponMatches(weapon, ".*grenade.*")) {
-    PrintToConsoleAll ("1:");
+    PrintToConsoleAll ("1: %s", weapon);
         float bounceTime = -1.0;
 
         if (weaponMatches(weapon, ".*hegrenade.*")) {
