@@ -103,13 +103,15 @@ public void removeGrenade ( int player, int grenade ) {
     }
 }
 public void addGrenade ( int player, int grenade ) {
+    PrintToConsoleAll ("addGrenade: %s", grenade);
     for ( int i = 0; i < 4; i++ ) {
         if ( grenades[player][i] == 0 ) {
             grenades[player][i] = grenade;
-            PrintToChatAll ("Grenade added: %d", grenade);
+            PrintToChatAll (" - Grenade added: %d", grenade);
             return;
         }
     }
+    PrintToChatAll (" - Not added!");
 }
 
 public int findGrenade ( int thrower, char weapon[64] ) {
