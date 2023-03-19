@@ -113,11 +113,18 @@ public void addGrenade ( int player, int grenade ) {
 }
 
 public int findGrenade ( int thrower, char weapon[64] ) {
+    char className[64];
+    PrintToConsoleAll ("findGrenade: %s", weapon);
     for ( int i = 0; i < 4; i++ ) {
-        if ( grenades[thrower][i] != 0 ) {
+        PrintToConsoleAll (" - Grenade: %d", grenades[thrower][i]);
+        GetEntityClassname(grenades[thrower][i], className, sizeof(className));
+
+        if ( strcmp ( weapon, className ) == 0 ) {
+            PrintToConsoleAll (" - Matched name: %d", grenades[thrower][i]);
             return grenades[thrower][i];
         }
     }
+    PrintToConsoleAll (" - Not Found!");
     return 0;
 }
 
@@ -166,7 +173,6 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
     PrintToChatAll ( "3" );
             char className[64];
         
-        GetEntityClassname(grenadeIndex, className, sizeof(className));
     PrintToChatAll ( "4" );
             PrintToConsoleAll("className: %s", className);
 
