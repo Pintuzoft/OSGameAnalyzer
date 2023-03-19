@@ -2,6 +2,7 @@
 #include <sdktools>
 #include <sdkhooks>
 #include <cstrike>
+#include <string>
 
 #define BOUNCE_TIME_THRESHOLD 0.5
 
@@ -26,7 +27,7 @@ bool killIsScoped[MAXPLAYERS + 1][16];
 bool killIsImpact[MAXPLAYERS + 1][16];
 int count[MAXPLAYERS + 1];
 
-int grenades[MAXPLAYERS + 1][4];
+char grenades[MAXPLAYERS + 1][4][64];
 
 public void OnPluginStart() {
     HookEvent("round_start", Event_RoundStart);
@@ -57,53 +58,69 @@ public void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast) {
 }
 
 public void Event_GrenadeThrown(Event event, const char[] name, bool dontBroadcast) {
-    int grenade = GetEventInt(event, "entityid");
     int thrower = GetClientOfUserId(GetEventInt(event, "userid"));
+    char grenade[64];
+    GetEventString(event, "weapon", grenade, sizeof(grenade));
     addGrenade ( thrower, grenade );
     PrintToConsoleAll ("Grenade thrown: %d", grenade);
 }
 public void Event_HEGrenadeDetonate(Event event, const char[] name, bool dontBroadcast) {
     int player = GetClientOfUserId(GetEventInt(event, "userid"));
-    removeGrenade ( player, GetEventInt(event, "entityid") );
+    char grenade[64];
+    GetEventString(event, "weapon", grenade, sizeof(grenade));
+    removeGrenade ( player, grenade );
 }
 public void Event_FlashbangDetonate(Event event, const char[] name, bool dontBroadcast) {
     int player = GetClientOfUserId(GetEventInt(event, "userid"));
-    removeGrenade ( player, GetEventInt(event, "entityid") );
+    char grenade[64];
+    GetEventString(event, "weapon", grenade, sizeof(grenade));
+    removeGrenade ( player, grenade );
 }
 public void Event_SmokegrenadeDetonate(Event event, const char[] name, bool dontBroadcast) {
     int player = GetClientOfUserId(GetEventInt(event, "userid"));
-    removeGrenade ( player, GetEventInt(event, "entityid") );
+    char grenade[64];
+    GetEventString(event, "weapon", grenade, sizeof(grenade));
+    removeGrenade ( player, grenade );
 }
 public void Event_IncendiaryGrenadeDetonate(Event event, const char[] name, bool dontBroadcast) {
     int player = GetClientOfUserId(GetEventInt(event, "userid"));
-    removeGrenade ( player, GetEventInt(event, "entityid") );
+    char grenade[64];
+    GetEventString(event, "weapon", grenade, sizeof(grenade));
+    removeGrenade ( player, grenade );
 }
 public void Event_MolotovDetonate(Event event, const char[] name, bool dontBroadcast) {
     int player = GetClientOfUserId(GetEventInt(event, "userid"));
-    removeGrenade ( player, GetEventInt(event, "entityid") );
+    char grenade[64];
+    GetEventString(event, "weapon", grenade, sizeof(grenade));
+    removeGrenade ( player, grenade );
 }
 public void Event_DecoyDetonate(Event event, const char[] name, bool dontBroadcast) {
     int player = GetClientOfUserId(GetEventInt(event, "userid"));
-    removeGrenade ( player, GetEventInt(event, "entityid") );
+    char grenade[64];
+    GetEventString(event, "weapon", grenade, sizeof(grenade));
+    removeGrenade ( player, grenade );
 }
 public void Event_TagrenadeDetonate(Event event, const char[] name, bool dontBroadcast) {
     int player = GetClientOfUserId(GetEventInt(event, "userid"));
-    removeGrenade ( player, GetEventInt(event, "entityid") );
+    char grenade[64];
+    GetEventString(event, "weapon", grenade, sizeof(grenade));
+    removeGrenade ( player, grenade );
 }
-public void removeGrenade ( int player, int grenade ) {
-    PrintToConsoleAll ("removeGrenade: %d", grenade);
+public void removeGrenade ( int player, char grenade[64] ) {
+    PrintToConsoleAll ("removeGrenade: %s", grenade);
     for ( int i = 0; i < 4; i++ ) {
-        if ( grenades[player][i] == grenade ) {
-            grenades[player][i] = 0;
-            PrintToConsoleAll (" - Grenade removed: %d", grenade);
+        if ( strcmp(grenades[player][i], grenade) == 0 ) {
+            grenades[player][i] = "";
+            PrintToConsoleAll (" - Grenade removed: %s", grenade);
             return;
         }
     }
+    PrintToConsoleAll (" - Not removed: %s", grenade);
 }
-public void addGrenade ( int player, int grenade ) {
+public void addGrenade ( int player, char grenade[64] ) {
     PrintToConsoleAll ("addGrenade: %s", grenade);
     for ( int i = 0; i < 4; i++ ) {
-        if ( grenades[player][i] == 0 ) {
+        if ( strcmp(grenades[player][i], "") == 0 ) {
             grenades[player][i] = grenade;
             PrintToConsoleAll (" - Grenade added: %d", grenade);
             printGrenades ( player );
@@ -114,30 +131,11 @@ public void addGrenade ( int player, int grenade ) {
     printGrenades ( player );
 }
 
-public int findGrenade ( int player, char weapon[64] ) {
-    char className[64];
-    PrintToConsoleAll ("findGrenade: %s", weapon );
-    for ( int i = 0; i < 4; i++ ) {
-        PrintToConsoleAll (" - Grenade: %d", grenades[player][i]);
-        if ( grenades[player][i] > 0 ) {
-            GetEntityClassname(grenades[player][i], className, sizeof(className));
-            PrintToConsoleAll (" - classname: %s", className);
-            if ( strcmp ( weapon, className ) == 0 ) {
-                PrintToConsoleAll (" - Matched name: %s", className);
-                return grenades[player][i];
-            }
-        }
-    }
-    PrintToConsoleAll (" - Not Found!");
-    return 0;
-}
-
-public int printGrenades ( int player ) {
+public void printGrenades ( int player ) {
     PrintToConsoleAll ("printGrenades: %d", player);
     for ( int i = 0; i < 4; i++ ) {
         PrintToConsoleAll (" - Grenade: %d", grenades[player][i]);
     }
-    return 0;
 }
 
 public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast) {
@@ -176,20 +174,17 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
         weaponMatches(weapon, "molotov") || 
         weaponMatches(weapon, "tagrenade")) {
     
-    PrintToChatAll ( "1" );
-        int grenadeIndex = findGrenade(killer, weapon);
-    PrintToChatAll ( "2" );
-
-        if (grenadeIndex > 0) {
-    PrintToChatAll ( "3" );
-            char className[64];
-        
-    PrintToChatAll ( "4" );
-            PrintToConsoleAll("className: %s", className);
-
+     
+        PrintToChatAll ( "1" );
+        for ( int i = 0; i < 4; i++ ) {
+            PrintToChatAll ( "2" );
+            if ( strcmp(grenades[killer][i], weapon) == 0 ) {
+                PrintToChatAll ( "3" );
+                grenades[killer][i] = "";
+                PrintToChatAll ( "4" );
+            }
         }
-    PrintToChatAll ( "5" );
-
+    }
 
 //        int grenadeEntity = GetEventInt(event, "inflictor_entindex");
 //        PrintToChatAll ("Killed by a grenade: %d", grenadeEntity);
@@ -202,7 +197,7 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 //            WritePackString(pack, victimName);
 //            WritePackString(pack, weapon);
 //        }
-    }
+  
     PrintToChatAll ( "6" );
     
     count[killer]++;
@@ -346,7 +341,7 @@ public void resetPlayers() {
 public void resetGrenades() {
     for (int i = 1; i <= MAXPLAYERS; i++) {
         for (int j = 0; j < 4; j++) {
-            grenades[i][j] = 0;
+            grenades[i][j] = "";
         }
     }
 }
