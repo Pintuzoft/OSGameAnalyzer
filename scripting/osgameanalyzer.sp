@@ -33,9 +33,7 @@ float g_LastHEGrenadeBounceTime[MAXPLAYERS + 1];
 float g_LastDecoyBounceTime[MAXPLAYERS + 1];
 float g_LastFlashbangBounceTime[MAXPLAYERS + 1];
 float g_LastSmokeGrenadeBounceTime[MAXPLAYERS + 1];
-float g_LastIncendiaryGrenadeBounceTime[MAXPLAYERS + 1];
 float g_LastMolotovBounceTime[MAXPLAYERS + 1];
-float g_LastTagrenadeBounceTime[MAXPLAYERS + 1];
 
 
 
@@ -114,15 +112,15 @@ public void Event_GrenadeBounce(Event event, const char[] name, bool dontBroadca
     if (weaponMatches(weapon, ".*(hegrenade|decoy|flashbang|smokegrenade|molotov|incgrenade).*")) {
         g_LastBouncedGrenade[owner] = grenadeEntity;
 
-        if (weaponMatches(weapon, ".*hegrenade.*")) {
+        if (weaponMatches(weapon, "\\bhegrenade\\b")) {
             g_LastHEGrenadeBounceTime[owner] = GetGameTime();
-        } else if (weaponMatches(weapon, ".*decoy.*")) {
+        } else if (weaponMatches(weapon, "\\bdecoy\\b")) {
             g_LastDecoyBounceTime[owner] = GetGameTime();
-        } else if (weaponMatches(weapon, ".*flashbang.*")) {
+        } else if (weaponMatches(weapon, "\\bflashbang\\b")) {
             g_LastFlashbangBounceTime[owner] = GetGameTime();
-        } else if (weaponMatches(weapon, ".*smokegrenade.*")) {
+        } else if (weaponMatches(weapon, "\\bsmokegrenade\\b")) {
             g_LastSmokeGrenadeBounceTime[owner] = GetGameTime();
-        } else if (weaponMatches(weapon, ".*(molotov|incgrenade).*")) {
+        } else if (weaponMatches(weapon, "\\b(molotov|incgrenade)\\b")) {
             g_LastMolotovBounceTime[owner] = GetGameTime();
         }
     }
@@ -158,31 +156,31 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
     if (grenadeEntity == g_LastBouncedGrenade[killer]) {
     PrintToConsoleAll ( "1:" );
         float gameTime = GetGameTime();
-        if (weaponMatches(weapon, ".*hegrenade.*")) {
+        if (weaponMatches(weapon, "\\bhegrenade\\b")) {
     PrintToConsoleAll ( "2:" );
             if (gameTime - g_LastHEGrenadeBounceTime[killer] < BOUNCE_TIME_THRESHOLD) {
                 // Player was killed by the impact of an HE grenade
                 PrintToChatAll ("Killed by HE grenade");
             }
-        } else if (weaponMatches(weapon, ".*decoy.*")) {
+        } else if (weaponMatches(weapon, "\\bdecoy\\b")) {
     PrintToConsoleAll ( "3:" );
             if (gameTime - g_LastDecoyBounceTime[killer] < BOUNCE_TIME_THRESHOLD) {
                 // Player was killed by the impact of a decoy grenade
                 PrintToChatAll ("Killed by decoy grenade");
             }
-        } else if (weaponMatches(weapon, ".*flashbang.*")) {
+        } else if (weaponMatches(weapon, "\\bflashbang\\b")) {
     PrintToConsoleAll ( "4:" );
             if (gameTime - g_LastFlashbangBounceTime[killer] < BOUNCE_TIME_THRESHOLD) {
                 // Player was killed by the impact of a flashbang grenade
                 PrintToChatAll ("Killed by flashbang grenade");
             }
-        } else if (weaponMatches(weapon, ".*smokegrenade.*")) {
+        } else if (weaponMatches(weapon, "\\bsmokegrenade\\b")) {
     PrintToConsoleAll ( "5:" );
             if (gameTime - g_LastSmokeGrenadeBounceTime[killer] < BOUNCE_TIME_THRESHOLD) {
                 // Player was killed by the impact of a smoke grenade
                 PrintToChatAll ("Killed by smoke grenade");
             }
-        } else if (weaponMatches(weapon, ".*(molotov|incgrenade).*")) {
+        } else if (weaponMatches(weapon, "\\b(molotov|incgrenade)\\b")) {
     PrintToConsoleAll ( "6:" );
             if (gameTime - g_LastMolotovBounceTime[killer] < BOUNCE_TIME_THRESHOLD) {
                 // Player was killed by the impact of a molotov or incendiary grenade
