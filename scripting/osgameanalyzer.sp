@@ -145,20 +145,22 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
             if (grenade != -1) {
         PrintToConsoleAll("2");
                 char nadeWeapon[64];
+        PrintToConsoleAll("3");
                 GetEntPropString(grenade, Prop_Send, "m_iClassname", nadeWeapon, sizeof(nadeWeapon));
+        PrintToConsoleAll("4");
                 
 
                 if ( strcmp(nadeWeapon, weapon, false) == 0 ) {
-        PrintToConsoleAll("3");
+        PrintToConsoleAll("5");
                     PrintToChatAll ("Grenade matches: %d: %s:%s", grenade, nadeWeapon, weapon);
                 } else {
-        PrintToConsoleAll("4");
+        PrintToConsoleAll("6");
                     PrintToChatAll ("Grenade doesn't match: %d: %s:%s", grenade, nadeWeapon, weapon);
                 }
-        PrintToConsoleAll("5");
+        PrintToConsoleAll("7");
 
             }
-        PrintToConsoleAll("6");
+        PrintToConsoleAll("8");
 
 
 //        int grenadeEntity = GetEventInt(event, "inflictor_entindex");
@@ -173,7 +175,7 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 //            WritePackString(pack, weapon);
 //        }
     }
-        PrintToConsoleAll("7");
+        PrintToConsoleAll("9");
     
     count[killer]++;
 }
@@ -236,7 +238,7 @@ public bool isWarmup() {
 public int findGrenade(int player) {
     PrintToConsoleAll("  - 0");
     if ( grenadeList[player].Length > 0 ) {
-    PrintToConsoleAll("  - 1");
+    PrintToConsoleAll("  - 1:%d", grenadeList[player].Get(0));
         return grenadeList[player].Get(0);
     }
     PrintToConsoleAll("  - 2");
