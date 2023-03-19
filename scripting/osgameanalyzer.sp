@@ -105,32 +105,42 @@ public void Event_GrenadeBounce(Event event, const char[] name, bool dontBroadca
     int entity = GetClientOfUserId(GetEventInt(event, "userid"));
 
     PrintToChatAll ("Grenade bounced: %d", entity);
-
+    PrintToConsoleAll (" - 0");
     if (weaponMatches(name, ".*grenade.*")) {
+    PrintToConsoleAll (" - 1");
         g_LastBouncedGrenade[entity] = entity;
 
         if (weaponMatches(name, ".*hegrenade.*")) {
+    PrintToConsoleAll (" - 2");
             g_LastHEGrenadeBounceTime[entity] = GetGameTime();
 
         } else if (weaponMatches(name, ".*decoy.*")) {
+    PrintToConsoleAll (" - 3");
             g_LastDecoyBounceTime[entity] = GetGameTime();
         
         } else if (weaponMatches(name, ".*flashbang.*")) {
+    PrintToConsoleAll (" - 4");
             g_LastFlashbangBounceTime[entity] = GetGameTime();
         
         } else if (weaponMatches(name, ".*smokegrenade.*")) {
+    PrintToConsoleAll (" - 5");
             g_LastSmokegrenadeBounceTime[entity] = GetGameTime();
         
         } else if (weaponMatches(name, ".*incendiarygrenade.*")) {
+    PrintToConsoleAll (" - 6");
             g_LastIncendiaryGrenadeBounceTime[entity] = GetGameTime();
         
         } else if (weaponMatches(name, ".*molotov.*")) {
+    PrintToConsoleAll (" - 7");
             g_LastMolotovBounceTime[entity] = GetGameTime();
         
         } else if (weaponMatches(name, ".*tagrenade.*")) {
+    PrintToConsoleAll (" - 8");
             g_LastTagrenadeBounceTime[entity] = GetGameTime();
         }
+    PrintToConsoleAll (" - 9");
     }
+    PrintToConsoleAll (" - 10");
 }
 
 public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast) {
