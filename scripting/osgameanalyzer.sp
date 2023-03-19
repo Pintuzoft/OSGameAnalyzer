@@ -167,9 +167,8 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
         for ( int i = 0; i < 4; i++ ) {
             PrintToChatAll ( "2" );
             if ( strcmp(grenades[killer][i], weapon) == 0 ) {
-                PrintToChatAll ( "3" );
-                grenades[killer][i] = "";
-                PrintToChatAll ( "4" );
+                 PrintToChatAll ( "[OSGameAnalyzer]: %s killed %s with the impact of a %s", killerName, victimName, weapon);
+                 
             }
         }
     }
