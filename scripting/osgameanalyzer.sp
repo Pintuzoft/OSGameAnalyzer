@@ -60,7 +60,7 @@ public void Event_GrenadeThrown(Event event, const char[] name, bool dontBroadca
     int grenade = GetEventInt(event, "entityid");
     int thrower = GetClientOfUserId(GetEventInt(event, "userid"));
     addGrenade ( thrower, grenade );
-    PrintToChatAll ("Grenade thrown: %d", grenade);
+    PrintToConsoleAll ("Grenade thrown: %d", grenade);
 }
 public void Event_HEGrenadeDetonate(Event event, const char[] name, bool dontBroadcast) {
     int player = GetClientOfUserId(GetEventInt(event, "userid"));
@@ -91,7 +91,7 @@ public void Event_TagrenadeDetonate(Event event, const char[] name, bool dontBro
     removeGrenade ( player, GetEventInt(event, "entityid") );
 }
 public void removeGrenade ( int player, int grenade ) {
-    PrintToConsoleAll ("Grenade remove: %d", grenade);
+    PrintToConsoleAll ("removeGrenade: %d", grenade);
     for ( int i = 0; i < 4; i++ ) {
         if ( grenades[player][i] == grenade ) {
             grenades[player][i] = 0;
@@ -110,6 +110,7 @@ public void addGrenade ( int player, int grenade ) {
         }
     }
     PrintToConsoleAll (" - Not added!");
+    printGrenades ( player );
 }
 
 public int findGrenade ( int player, char weapon[64] ) {
@@ -130,6 +131,13 @@ public int findGrenade ( int player, char weapon[64] ) {
     return 0;
 }
 
+public int printGrenades ( int player ) {
+    PrintToConsoleAll ("printGrenades: %d", player);
+    for ( int i = 0; i < 4; i++ ) {
+        PrintToConsoleAll (" - Grenade: %d", grenades[player][i]);
+    }
+    return 0;
+}
 
 public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast) {
     int killer = GetClientOfUserId(GetEventInt(event, "attacker"));
