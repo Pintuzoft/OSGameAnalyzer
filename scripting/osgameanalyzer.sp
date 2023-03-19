@@ -103,13 +103,14 @@ public void removeGrenade ( int grenade ) {
 
 public void Event_GrenadeBounce(Event event, const char[] name, bool dontBroadcast) {
     int grenadeEntity = GetEventInt(event, "entindex");
-
+    int owner = GetClientOfUserId(event.GetInt("userid"));
+    char ownerName[64];
+    GetClientName( owner, ownerName, sizeof(ownerName)  );
     char weapon[64];
     GetEntityClassname(grenadeEntity, weapon, sizeof(weapon));
     
-    int ownerEntity = GetEntPropEnt(grenadeEntity, Prop_Send, "m_hOwnerEntity");
-    int owner = GetClientOfEnt(ownerEntity);
-PrintToConsoleAll (" - Grenade bounce: %d: %s", grenadeEntity, weapon);
+ 
+PrintToConsoleAll (" - Grenade bounce: %d: %s", grenadeEntity, ownerName);
     if (weaponMatches(weapon, "hegrenade") || 
         weaponMatches(weapon, "decoy") || 
         weaponMatches(weapon, "flashbang") || 
