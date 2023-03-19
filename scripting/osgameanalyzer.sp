@@ -154,7 +154,7 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 
     PrintToConsoleAll ( "0:" );
     if (grenadeEntity == g_LastBouncedGrenade[killer]) {
-    PrintToConsoleAll ( "1:" );
+    PrintToConsoleAll ( "1: %s", weapon );
         float gameTime = GetGameTime();
         if (weaponMatches(weapon, "\\bhegrenade\\b")) {
     PrintToConsoleAll ( "2:" );
