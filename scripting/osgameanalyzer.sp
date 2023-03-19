@@ -229,8 +229,8 @@ public bool isWarmup() {
 public int findGrenade(int player) {
     PrintToConsoleAll("  - 0");
     if ( grenadeList[player].Length > 0 ) {
-    PrintToConsoleAll("  - 1:%d", grenadeList[player].Get(0));
-        return grenadeList[player].Get(0);
+    PrintToConsoleAll("  - 1:%d", grenadeList[player].FindValue(0));
+        return grenadeList[player].FindValue(0);
     }
     PrintToConsoleAll("  - 2");
     return -1;
