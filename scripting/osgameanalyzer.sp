@@ -154,35 +154,44 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
     killIsSuicide[killer][count[killer]] = killer == victim;
     killIsScoped[killer][count[killer]] = GetEventInt(event, "scoped") == 1;
 
+    PrintToConsoleAll ( "0:" );
     if (grenadeEntity == g_LastBouncedGrenade[killer]) {
+    PrintToConsoleAll ( "1:" );
         float gameTime = GetGameTime();
         if (weaponMatches(weapon, ".*hegrenade.*")) {
+    PrintToConsoleAll ( "2:" );
             if (gameTime - g_LastHEGrenadeBounceTime[killer] < BOUNCE_TIME_THRESHOLD) {
                 // Player was killed by the impact of an HE grenade
                 PrintToChatAll ("Killed by HE grenade");
             }
         } else if (weaponMatches(weapon, ".*decoy.*")) {
+    PrintToConsoleAll ( "3:" );
             if (gameTime - g_LastDecoyBounceTime[killer] < BOUNCE_TIME_THRESHOLD) {
                 // Player was killed by the impact of a decoy grenade
                 PrintToChatAll ("Killed by decoy grenade");
             }
         } else if (weaponMatches(weapon, ".*flashbang.*")) {
+    PrintToConsoleAll ( "4:" );
             if (gameTime - g_LastFlashbangBounceTime[killer] < BOUNCE_TIME_THRESHOLD) {
                 // Player was killed by the impact of a flashbang grenade
                 PrintToChatAll ("Killed by flashbang grenade");
             }
         } else if (weaponMatches(weapon, ".*smokegrenade.*")) {
+    PrintToConsoleAll ( "5:" );
             if (gameTime - g_LastSmokeGrenadeBounceTime[killer] < BOUNCE_TIME_THRESHOLD) {
                 // Player was killed by the impact of a smoke grenade
                 PrintToChatAll ("Killed by smoke grenade");
             }
         } else if (weaponMatches(weapon, ".*(molotov|incgrenade).*")) {
+    PrintToConsoleAll ( "6:" );
             if (gameTime - g_LastMolotovBounceTime[killer] < BOUNCE_TIME_THRESHOLD) {
                 // Player was killed by the impact of a molotov or incendiary grenade
                 PrintToChatAll ("Killed by molotov/incendiary grenade");
             }
         }
+    PrintToConsoleAll ( "7:" );
     }
+    PrintToConsoleAll ( "8:" );
 
     count[killer]++;
 }
