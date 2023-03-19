@@ -114,16 +114,18 @@ public void addGrenade ( int player, int grenade ) {
     PrintToChatAll (" - Not added!");
 }
 
-public int findGrenade ( int thrower, char weapon[64] ) {
+public int findGrenade ( int player, char weapon[64] ) {
     char className[64];
-    PrintToConsoleAll ("findGrenade: %s", weapon);
+    PrintToConsoleAll ("findGrenade: %s", weapon );
     for ( int i = 0; i < 4; i++ ) {
-        PrintToConsoleAll (" - Grenade: %d", grenades[thrower][i]);
-        GetEntityClassname(grenades[thrower][i], className, sizeof(className));
-
-        if ( strcmp ( weapon, className ) == 0 ) {
-            PrintToConsoleAll (" - Matched name: %d", grenades[thrower][i]);
-            return grenades[thrower][i];
+        PrintToConsoleAll (" - Grenade: %d", grenades[player][i]);
+        if ( grenades[player][i] > 0 ) {
+            GetEntityClassname(grenades[player][i], className, sizeof(className));
+            PrintToConsoleAll (" - classname: %s", className);
+            if ( strcmp ( weapon, className ) == 0 ) {
+                PrintToConsoleAll (" - Matched name: %s", className);
+                return grenades[player][i];
+            }
         }
     }
     PrintToConsoleAll (" - Not Found!");
