@@ -106,7 +106,7 @@ public void Event_GrenadeBounce(Event event, const char[] name, bool dontBroadca
 
     PrintToChatAll ("Grenade bounced: %d", entity);
     PrintToConsoleAll (" - 0");
-    if (weaponMatches(name, ".*grenade.*")) {
+    if (weaponMatches(name, ".*(hegrenade|decoy|flashbang|smokegrenade|incendiarygrenade|molotov|tagrenade).*")) {
     PrintToConsoleAll (" - 1");
         g_LastBouncedGrenade[entity] = entity;
 
@@ -165,7 +165,7 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
     GetEventString(event, "weapon", weapon, sizeof(weapon));
     strcopy(killWeapons[killer][count[killer]], sizeof(weapon), weapon);
     PrintToConsoleAll ("0:");
-    if (weaponMatches(weapon, ".*grenade.*")) {
+    if (weaponMatches(weapon, ".*(hegrenade|decoy|flashbang|smokegrenade|incendiarygrenade|molotov|tagrenade).*")) {
     PrintToConsoleAll ("1: %s", weapon);
         float bounceTime = -1.0;
 
