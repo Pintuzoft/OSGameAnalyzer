@@ -147,6 +147,8 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
     GetEventString(event, "weapon", weapon, sizeof(weapon));
     strcopy(killWeapons[killer][count[killer]], sizeof(weapon), weapon);
 
+    PrintToConsoleAll("Weapon: %s", weapon); // Add this line to print the weapon string value
+
     killIsHeadShot[killer][count[killer]] = GetEventInt(event, "headshot") == 1;
     killIsTeamKill[killer][count[killer]] = GetEventInt(event, "assister") != 0;
     killIsSuicide[killer][count[killer]] = killer == victim;
