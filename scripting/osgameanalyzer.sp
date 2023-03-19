@@ -52,6 +52,7 @@ public void OnPluginStart() {
     HookEvent("decoy_detonate", Event_DecoyDetonate);
     HookEvent("tagrenade_detonate", Event_TagrenadeDetonate);
 
+    HookEvent("grenade_bounce", Event_GrenadeBounce);
 
 
     resetPlayers();
