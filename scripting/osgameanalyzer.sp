@@ -107,27 +107,35 @@ public void Event_GrenadeBounce(Event event, const char[] name, bool dontBroadca
     
     int ownerEntity = GetEntPropEnt(grenadeEntity, Prop_Send, "m_hOwnerEntity");
     int owner = GetClientOfEnt(ownerEntity);
-
+PrintToConsoleAll (" - Grenade bounce: %d", grenadeEntity);
     if (weaponMatches(weapon, "hegrenade") || 
         weaponMatches(weapon, "decoy") || 
         weaponMatches(weapon, "flashbang") || 
         weaponMatches(weapon, "smokegrenade") || 
         weaponMatches(weapon, "molotov") || 
         weaponMatches(weapon, "incgrenade")) {
+PrintToConsoleAll ("   - 1");
         g_LastBouncedGrenade[owner] = grenadeEntity;
 
         if (weaponMatches(weapon, "hegrenade")) {
+PrintToConsoleAll ("   - 2");
             g_LastHEGrenadeBounceTime[owner] = GetGameTime();
         } else if (weaponMatches(weapon, "decoy")) {
+PrintToConsoleAll ("   - 3");
             g_LastDecoyBounceTime[owner] = GetGameTime();
         } else if (weaponMatches(weapon, "flashbang")) {
+PrintToConsoleAll ("   - 4");
             g_LastFlashbangBounceTime[owner] = GetGameTime();
         } else if (weaponMatches(weapon, "smokegrenade")) {
+PrintToConsoleAll ("   - 5");
             g_LastSmokeGrenadeBounceTime[owner] = GetGameTime();
         } else if (weaponMatches(weapon, "molotov") || weaponMatches(weapon, "incgrenade")) {
+PrintToConsoleAll ("   - 6");
             g_LastMolotovBounceTime[owner] = GetGameTime();
         }
+PrintToConsoleAll ("   - 7");
     }
+PrintToConsoleAll ("   - 8");
 }
 
 public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast) {
