@@ -131,12 +131,17 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 
     if (weaponMatches(weapon, "hegrenade")) {
         PrintToChatAll ("Killed by HE grenade");
+        if ( grenadeList[killer].Length > 0 ) {
+            PrintToChatAll ("HEGrenadeKill: %d", grenadeList[killer][0]);
+        } else {
+            PrintToChatAll ("No HEGrenade");
+        }
     } else if (weaponMatches(weapon, "decoy")) {
         PrintToChatAll ("Killed by decoy grenade");
         if ( grenadeList[killer].Length > 0 ) {
-            PrintToChatAll ("Grenade: %d", grenadeList[killer][0]);
+            PrintToChatAll ("DecoyKill: %d", grenadeList[killer][0]);
         } else {
-            PrintToChatAll ("No grenade");
+            PrintToChatAll ("No decoy");
         }
     } else if (weaponMatches(weapon, "flashbang")) {
         PrintToChatAll ("Killed by flashbang grenade");
