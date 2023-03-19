@@ -102,7 +102,8 @@ public void removeGrenade ( int grenade ) {
 
 
 public void Event_GrenadeBounce(Event event, const char[] name, bool dontBroadcast) {
-    int grenadeEntity = GetEventInt(event, "entityid");
+    int grenadeEntity = GetEventInt(event, "entindex");
+
     char weapon[64];
     GetEntityClassname(grenadeEntity, weapon, sizeof(weapon));
     
