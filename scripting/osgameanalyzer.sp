@@ -66,45 +66,31 @@ public void Event_GrenadeThrown(Event event, const char[] name, bool dontBroadca
 }
 public void Event_HEGrenadeDetonate(Event event, const char[] name, bool dontBroadcast) {
     int player = GetClientOfUserId(GetEventInt(event, "userid"));
-    char grenade[64];
-    GetEventString(event, "weapon", grenade, sizeof(grenade));
-    removeGrenade ( player, grenade );
+    removeGrenade ( player, "hegrenade" );
 }
 public void Event_FlashbangDetonate(Event event, const char[] name, bool dontBroadcast) {
     int player = GetClientOfUserId(GetEventInt(event, "userid"));
-    char grenade[64];
-    GetEventString(event, "weapon", grenade, sizeof(grenade));
-    removeGrenade ( player, grenade );
+    removeGrenade ( player, "flashbang" );
 }
 public void Event_SmokegrenadeDetonate(Event event, const char[] name, bool dontBroadcast) {
     int player = GetClientOfUserId(GetEventInt(event, "userid"));
-    char grenade[64];
-    GetEventString(event, "weapon", grenade, sizeof(grenade));
-    removeGrenade ( player, grenade );
+    removeGrenade ( player, "smokegrenade" );
 }
 public void Event_IncendiaryGrenadeDetonate(Event event, const char[] name, bool dontBroadcast) {
     int player = GetClientOfUserId(GetEventInt(event, "userid"));
-    char grenade[64];
-    GetEventString(event, "weapon", grenade, sizeof(grenade));
-    removeGrenade ( player, grenade );
+    removeGrenade ( player, "incendiary" );
 }
 public void Event_MolotovDetonate(Event event, const char[] name, bool dontBroadcast) {
     int player = GetClientOfUserId(GetEventInt(event, "userid"));
-    char grenade[64];
-    GetEventString(event, "weapon", grenade, sizeof(grenade));
-    removeGrenade ( player, grenade );
+    removeGrenade ( player, "molotov" );
 }
 public void Event_DecoyDetonate(Event event, const char[] name, bool dontBroadcast) {
     int player = GetClientOfUserId(GetEventInt(event, "userid"));
-    char grenade[64];
-    GetEventString(event, "weapon", grenade, sizeof(grenade));
-    removeGrenade ( player, grenade );
+    removeGrenade ( player, "decoy" );
 }
 public void Event_TagrenadeDetonate(Event event, const char[] name, bool dontBroadcast) {
     int player = GetClientOfUserId(GetEventInt(event, "userid"));
-    char grenade[64];
-    GetEventString(event, "weapon", grenade, sizeof(grenade));
-    removeGrenade ( player, grenade );
+    removeGrenade ( player, "tagrenade" );
 }
 public void removeGrenade ( int player, char grenade[64] ) {
     PrintToConsoleAll ("removeGrenade: %s", grenade);
