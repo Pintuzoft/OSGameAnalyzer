@@ -136,9 +136,10 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
         weaponMatches(weapon, "incendiarygrenade") || 
         weaponMatches(weapon, "molotov") || 
         weaponMatches(weapon, "tagrenade")) {
-        PrintToChatAll ("Killed by a grenade");
     
         int grenadeEntity = GetEventInt(event, "inflictor_entindex");
+        PrintToChatAll ("Killed by a grenade: %d", grenadeEntity);
+
         if (grenadeEntity != 0) {     
             Handle pack;
             CreateTimer(0.1, Timer_CheckGrenadeExistence, pack);
