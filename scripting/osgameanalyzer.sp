@@ -108,7 +108,7 @@ public void Event_GrenadeBounce(Event event, const char[] name, bool dontBroadca
     
     int ownerEntity = GetEntPropEnt(grenadeEntity, Prop_Send, "m_hOwnerEntity");
     int owner = GetClientOfEnt(ownerEntity);
-PrintToConsoleAll (" - Grenade bounce: %d", grenadeEntity);
+PrintToConsoleAll (" - Grenade bounce: %d: %s", grenadeEntity, weapon);
     if (weaponMatches(weapon, "hegrenade") || 
         weaponMatches(weapon, "decoy") || 
         weaponMatches(weapon, "flashbang") || 
