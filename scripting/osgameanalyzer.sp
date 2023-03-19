@@ -28,8 +28,6 @@ int count[MAXPLAYERS + 1];
 
 ArrayList grenadeList[MAXPLAYERS + 1];
 
-
-
 public void OnPluginStart() {
     for ( int i = 1; i <= MaxClients; i++ ) {
         grenadeList[i] = new ArrayList();
@@ -102,6 +100,8 @@ public void removeGrenade ( int player, int grenade ) {
     PrintToChatAll ("Grenade removed: %s:%d", thrower, grenade);
 }
 
+ 
+
 public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast) {
     int killer = GetClientOfUserId(GetEventInt(event, "attacker"));
     int victim = GetClientOfUserId(GetEventInt(event, "userid"));
@@ -129,33 +129,53 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
     killIsSuicide[killer][count[killer]] = killer == victim;
     killIsScoped[killer][count[killer]] = GetEventInt(event, "scoped") == 1;
 
-    if (weaponMatches(weapon, "hegrenade")) {
-        PrintToChatAll ("Killed by HE grenade");
-        if ( grenadeList[killer].Length > 0 ) {
-            PrintToChatAll ("HEGrenadeKill: %d", grenadeList[killer][0]);
-        } else {
-            PrintToChatAll ("No HEGrenade");
+    if (weaponMatches(weapon, "hegrenade") || 
+        weaponMatches(weapon, "flashbang") || 
+        weaponMatches(weapon, "smokegrenade") || 
+        weaponMatches(weapon, "decoy") || 
+        weaponMatches(weapon, "incendiarygrenade") || 
+        weaponMatches(weapon, "molotov") || 
+        weaponMatches(weapon, "tagrenade")) {
+        PrintToChatAll ("Killed by a grenade");
+    
+        int grenadeEntity = GetEventInt(event, "inflictor_entindex");
+        if (grenadeEntity != 0) {     
+            Handle pack;
+            CreateTimer(0.1, Timer_CheckGrenadeExistence, pack);
+            WritePackCell(pack, grenadeEntity);
+            WritePackString(pack, killerName);
+            WritePackString(pack, victimName);
+            WritePackString(pack, weapon);
         }
-    } else if (weaponMatches(weapon, "decoy")) {
-        PrintToChatAll ("Killed by decoy grenade");
-        if ( grenadeList[killer].Length > 0 ) {
-            PrintToChatAll ("DecoyKill: %d", grenadeList[killer][0]);
-        } else {
-            PrintToChatAll ("No decoy");
-        }
-    } else if (weaponMatches(weapon, "flashbang")) {
-        PrintToChatAll ("Killed by flashbang grenade");
-    } else if (weaponMatches(weapon, "smokegrenade")) {
-        PrintToChatAll ("Killed by smoke grenade");
-    } else if (weaponMatches(weapon, "molotov") || weaponMatches(weapon, "incgrenade") ) {
-        PrintToChatAll ("Killed by molotov/incendiary grenade");
     }
     
-
     count[killer]++;
 }
 
 /* METHODS */
+
+public Action Timer_CheckGrenadeExistence(Handle timer, Handle:pack) {
+    int grenadeEntity;
+    char killer[64];
+    char victim[64];
+    char weapon[64];
+    
+    ResetPack(pack);
+    grenadeEntity = ReadPackCell(pack);
+    ReadPackString(pack, killer, sizeof(killer));
+    ReadPackString(pack, victim, sizeof(victim));
+    ReadPackString(pack, weapon, sizeof(weapon));
+
+    if (IsValidEntity(grenadeEntity)) {
+        PrintToChatAll ("Grenade still exists");
+    } else {
+        PrintToChatAll ("Grenade doesn't exist");
+    }
+    CloseHandle(timer);
+    return Plugin_Continue;
+}
+
+
 public void databaseConnect() {
     if ((mysql = SQL_Connect("gameanalyzer", true, error, sizeof(error))) != null) {
         PrintToServer("[OSGameAnalyzer]: Connected to mysql database!");
