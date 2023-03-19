@@ -137,17 +137,33 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
         weaponMatches(weapon, "molotov") || 
         weaponMatches(weapon, "tagrenade")) {
     
-        int grenadeEntity = GetEventInt(event, "inflictor_entindex");
-        PrintToChatAll ("Killed by a grenade: %d", grenadeEntity);
+            int grenade = findGrenade(killer);
 
-        if (grenadeEntity != 0) {     
-            Handle pack;
-            CreateTimer(0.1, Timer_CheckGrenadeExistence, pack);
-            WritePackCell(pack, grenadeEntity);
-            WritePackString(pack, killerName);
-            WritePackString(pack, victimName);
-            WritePackString(pack, weapon);
-        }
+            if (grenade != -1) {
+                char nadeWeapon[64];
+                GetEntPropString(grenade, Prop_Send, "m_iClassname", nadeWeapon, sizeof(nadeWeapon));
+                
+
+                if ( strcmp(nadeWeapon, weapon, false) == 0 ) {
+                    PrintToChatAll ("Grenade matches: %d: %s:%s", grenade, nadeWeapon, weapon);
+                } else {
+                    PrintToChatAll ("Grenade doesn't match: %d: %s:%s", grenade, nadeWeapon, weapon);
+                }
+
+            }
+
+
+//        int grenadeEntity = GetEventInt(event, "inflictor_entindex");
+//        PrintToChatAll ("Killed by a grenade: %d", grenadeEntity);
+
+//        if (grenadeEntity != 0) {     
+//            Handle pack;
+//            CreateTimer(0.1, Timer_CheckGrenadeExistence, pack);
+//            WritePackCell(pack, grenadeEntity);
+//            WritePackString(pack, killerName);
+//            WritePackString(pack, victimName);
+//            WritePackString(pack, weapon);
+//        }
     }
     
     count[killer]++;
@@ -205,6 +221,14 @@ public bool isWarmup() {
         return true;
     }
     return false;
+}
+
+/* loop and find grenade for specific user */
+public int findGrenade(int player) {
+    for (int i = 0; i < grenadeList[player].Length; i++) {
+        return grenadeList[player].Get(0);
+    }
+    return -1;
 }
 
 /* analyze kills for each player */
