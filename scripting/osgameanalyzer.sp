@@ -26,13 +26,15 @@ bool killIsSuicide[MAXPLAYERS + 1][16];
 bool killIsScoped[MAXPLAYERS + 1][16];
 bool killIsImpact[MAXPLAYERS + 1][16];
 int count[MAXPLAYERS + 1];
-
+ 
+int lastHitDamage[MAXPLAYERS + 1];
 char grenades[MAXPLAYERS + 1][4][64];
 
 public void OnPluginStart() {
     HookEvent("round_start", Event_RoundStart);
     HookEvent("round_end", Event_RoundEnd);
     HookEvent("player_death", Event_PlayerDeath);
+    HookEvent("player_hurt", Event_PlayerHurt);
 
     HookEvent("grenade_thrown", Event_GrenadeThrown);
     HookEvent("hegrenade_detonate", Event_HEGrenadeDetonate);
@@ -126,6 +128,18 @@ public void printGrenades ( int player ) {
     }
 }
 
+/* log last hit damage */
+public void Event_PlayerHurt(Event event, const char[] name, bool dontBroadcast) {
+    int victim = GetClientOfUserId(GetEventInt(event, "userid"));
+    int attacker = GetClientOfUserId(GetEventInt(event, "attacker"));
+
+    if (!playerIsReal(victim) || !playerIsReal(attacker)) {
+        return;
+    }
+
+    lastHitDamage[victim] = GetEventInt(event, "dmg_health");
+}
+
 public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast) {
     int killer = GetClientOfUserId(GetEventInt(event, "attacker"));
     int victim = GetClientOfUserId(GetEventInt(event, "userid"));
@@ -152,8 +166,8 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
     killIsTeamKill[killer][count[killer]] = GetEventInt(event, "assister") != 0;
     killIsSuicide[killer][count[killer]] = killer == victim;
     killIsScoped[killer][count[killer]] = GetEventInt(event, "scoped") == 1;
-
-    PrintToChatAll ( "0" );
+    killIsImpact[killer][count[killer]] = false;
+    
     if (weaponMatches(weapon, "hegrenade") || 
         weaponMatches(weapon, "flashbang") || 
         weaponMatches(weapon, "smokegrenade") || 
@@ -161,13 +175,16 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
         weaponMatches(weapon, "incendiarygrenade") || 
         weaponMatches(weapon, "molotov") || 
         weaponMatches(weapon, "tagrenade")) {
-     
-        int found = 0;
-        for ( int i = 0; i < 4 && found == 0; i++ ) {
-            PrintToChatAll ( "2" );
-            if ( strcmp(grenades[killer][i], weapon) == 0 ) {
-                PrintToChatAll ( "[OSGameAnalyzer]: %s killed %s with the impact of a %s", killerName, victimName, weapon);
-                found++;
+        
+        if ( lastHitDamage[victim] < 3 ) {
+            int found = 0;
+            for ( int i = 0; i < 4 && found == 0; i++ ) {
+                PrintToChatAll ( "2" );
+                if ( strcmp(grenades[killer][i], weapon) == 0 ) {
+                    PrintToChatAll ( "[OSGameAnalyzer]: %s got hit by a %s and died. Logging event.", victimName, weapon );
+                    killIsImpact[killer][count[killer]] = true;
+                    found++;
+                }
             }
         }
     }
@@ -190,26 +207,26 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 
 /* METHODS */
 
-public Action Timer_CheckGrenadeExistence(Handle timer, Handle:pack) {
-    int grenadeEntity;
-    char killer[64];
-    char victim[64];
-    char weapon[64];
+//public Action Timer_CheckGrenadeExistence(Handle timer, Handle:pack) {
+//    int grenadeEntity;
+//    char killer[64];
+//    char victim[64];
+//    char weapon[64];
     
-    ResetPack(pack);
-    grenadeEntity = ReadPackCell(pack);
-    ReadPackString(pack, killer, sizeof(killer));
-    ReadPackString(pack, victim, sizeof(victim));
-    ReadPackString(pack, weapon, sizeof(weapon));
+//    ResetPack(pack);
+//    grenadeEntity = ReadPackCell(pack);
+//    ReadPackString(pack, killer, sizeof(killer));
+//    ReadPackString(pack, victim, sizeof(victim));
+//    ReadPackString(pack, weapon, sizeof(weapon));
 
-    if (IsValidEntity(grenadeEntity)) {
-        PrintToChatAll ("Grenade still exists");
-    } else {
-        PrintToChatAll ("Grenade doesn't exist");
-    }
-    CloseHandle(timer);
-    return Plugin_Continue;
-}
+//    if (IsValidEntity(grenadeEntity)) {
+//        PrintToChatAll ("Grenade still exists");
+//    } else {
+//        PrintToChatAll ("Grenade doesn't exist");
+//    }
+//    CloseHandle(timer);
+//    return Plugin_Continue;
+//}
 
 
 public void databaseConnect() {
@@ -244,6 +261,7 @@ public bool isWarmup() {
  
 /* analyze kills for each player */
 public void analyzeKills() {
+    PrintToChatAll ( "[OSGameAnalyzer]: Analyzing data..." );
     for (int i = 1; i <= MAXPLAYERS; i++) {
         if (count[i] == 0) {
             continue;
@@ -253,13 +271,14 @@ public void analyzeKills() {
         int quickFrags = 0;
         int lastFragTime = killTimes[i][0];
 
+
         for (int j = 0; j < count[i]; j++) {
             // Check for 3+ frags in a short amount of time
             if (killTimes[i][j] - lastFragTime <= 5) {
                 quickFrags++;
                 if (quickFrags >= 3) {
                     // Handle the quick frags event
-                    PrintToConsoleAll ("Player %s has done %d frags within 5 seconds!", killer, quickFrags);
+                    PrintToConsoleAll ("  - Player %s has done %d frags within 5 seconds!", killer, quickFrags);
                 }
             } else {
                 quickFrags = 1;
@@ -270,26 +289,26 @@ public void analyzeKills() {
             if (weaponMatches(killWeapons[i][j], "decoy|flashbang|smokegrenade|hegrenade|incgrenade|molotov|tagrenade")) {
                 // Handle unlikely weapon event
                 if (killIsImpact[i][j]) {   
-                    PrintToConsoleAll ( "Player %s killed %s with %s", killer, victimNames[i][j], killWeapons[i][j] );
+                    PrintToConsoleAll ( "  - Player %s killed %s with %s", killer, victimNames[i][j], killWeapons[i][j] );
                 }
             }
 
             // Check for knife or taser frags
             if (weaponMatches(killWeapons[i][j], ".*knife|taser")) {
                 // Handle knife or taser event
-                PrintToConsoleAll ( "Player %s killed %s with %s", killer, victimNames[i][j], killWeapons[i][j] );
+                PrintToConsoleAll ( "  - Player %s killed %s with %s", killer, victimNames[i][j], killWeapons[i][j] );
             }
 
             // Check for teamkills
             if (killIsTeamKill[i][j]) {
                 // Handle teamkill event
-                PrintToConsoleAll ( "Player %s teamkilled %s", killer, victimNames[i][j] );
+                PrintToConsoleAll ( "  - Player %s teamkilled %s", killer, victimNames[i][j] );
             }
 
             // Check for noscope frags
             if ((strcmp(killWeapons[i][j], "awp") == 0 || strcmp(killWeapons[i][j], "ssg08") == 0) && !killIsScoped[i][j]) {
                 // Handle noscope event
-                PrintToConsoleAll ( "Player %s noscoped %s using %s", killer, victimNames[i][j], killWeapons[i][j] );
+                PrintToConsoleAll ( "  - Player %s noscoped %s using %s", killer, victimNames[i][j], killWeapons[i][j] );
             }
 
             // Check for 2+ players fragged at the same time
@@ -301,11 +320,13 @@ public void analyzeKills() {
                 }
                 if (simultaneousFrags >= 2) {
                     // Handle 2+ players fragged at the same time event
-                    PrintToConsoleAll ( "Player %s fragged %d players at the same time/second", killer, simultaneousFrags );
+                    PrintToConsoleAll ( "  - Player %s killed %d players at the same time/second (potential doublekill+)", killer, simultaneousFrags );
                 }
             }
         }
     }
+    PrintToChatAll ( "[OSGameAnalyzer]: End of Analyze" );
+
 }
 
 
@@ -319,7 +340,9 @@ public void resetPlayers() {
             killIsHeadShot[i][j] = false;
             killIsTeamKill[i][j] = false;
             killIsSuicide[i][j] = false;
+            killIsImpact[i][j] = false;
         }
+        lastHitDamage[i] = 0;
     }
 }
  
