@@ -16,7 +16,7 @@ public Plugin myinfo = {
     version = "0.01",
     url = "https://github.com/Pintuzoft/OSGameAnalyzer"
 };
- 
+int round = 0; 
 char victimNames[MAXPLAYERS + 1][16][64];
 int killTimes[MAXPLAYERS + 1][16];
 char killWeapons[MAXPLAYERS + 1][16][64];
@@ -31,6 +31,7 @@ int lastHitDamage[MAXPLAYERS + 1];
 char grenades[MAXPLAYERS + 1][4][64];
 
 public void OnPluginStart() {
+    databaseConnect();
     HookEvent("round_start", Event_RoundStart);
     HookEvent("round_end", Event_RoundEnd);
     HookEvent("player_death", Event_PlayerDeath);
@@ -49,9 +50,13 @@ public void OnPluginStart() {
     resetGrenades();
 
 }
+public void OnMapStart ( ) {
+    round = 0;
+}
 
 /* EVENTS */
 public void Event_RoundStart(Event event, const char[] name, bool dontBroadcast) {
+    round++;
     resetPlayers();
     resetGrenades();
 }
@@ -261,24 +266,30 @@ public bool isWarmup() {
  
 /* analyze kills for each player */
 public void analyzeKills() {
+    char killer[64];
+    char victim[64];
+    char info[64];
     PrintToChatAll ( "[OSGameAnalyzer]: Analyzing data..." );
     for (int i = 1; i <= MAXPLAYERS; i++) {
         if (count[i] == 0) {
             continue;
         }
-        char killer[64];
+        
         GetClientName(i, killer, sizeof(killer));
         int quickFrags = 0;
         int lastFragTime = killTimes[i][0];
 
 
         for (int j = 0; j < count[i]; j++) {
+            victim = victimNames[i][j];
             // Check for 3+ frags in a short amount of time
             if (killTimes[i][j] - lastFragTime <= 5) {
                 quickFrags++;
                 if (quickFrags >= 3) {
                     // Handle the quick frags event
                     PrintToConsoleAll ("  - Player %s has done %d frags within 5 seconds!", killer, quickFrags);
+                    Format ( info, sizeof(info), "QuickFrags: %d", quickFrags ); 
+                    logEvent ( killTimes[i][j], killer, victim, info );
                 }
             } else {
                 quickFrags = 1;
@@ -290,6 +301,8 @@ public void analyzeKills() {
                 // Handle unlikely weapon event
                 if (killIsImpact[i][j]) {   
                     PrintToConsoleAll ( "  - Player %s killed %s with %s", killer, victimNames[i][j], killWeapons[i][j] );
+                    Format ( info, sizeof(info), "GrenadeImpact: %s", killWeapons[i][j] );
+                    logEvent ( killTimes[i][j], killer, victim, info );
                 }
             }
 
@@ -297,18 +310,24 @@ public void analyzeKills() {
             if (weaponMatches(killWeapons[i][j], ".*knife|taser")) {
                 // Handle knife or taser event
                 PrintToConsoleAll ( "  - Player %s killed %s with %s", killer, victimNames[i][j], killWeapons[i][j] );
+                Format ( info, sizeof(info), "Weapon: %s", killWeapons[i][j] );
+                logEvent ( killTimes[i][j], killer, victim, info );
             }
 
             // Check for teamkills
             if (killIsTeamKill[i][j]) {
                 // Handle teamkill event
                 PrintToConsoleAll ( "  - Player %s teamkilled %s", killer, victimNames[i][j] );
+                Format ( info, sizeof(info), "Teamkill: %s", killWeapons[i][j] );
+                logEvent ( killTimes[i][j], killer, victim, info );
             }
 
             // Check for noscope frags
             if ((strcmp(killWeapons[i][j], "awp") == 0 || strcmp(killWeapons[i][j], "ssg08") == 0) && !killIsScoped[i][j]) {
                 // Handle noscope event
                 PrintToConsoleAll ( "  - Player %s noscoped %s using %s", killer, victimNames[i][j], killWeapons[i][j] );
+                Format ( info, sizeof(info), "Noscope: %s", killWeapons[i][j] );
+                logEvent ( killTimes[i][j], killer, victim, info );
             }
 
             // Check for 2+ players fragged at the same time
@@ -321,6 +340,8 @@ public void analyzeKills() {
                 if (simultaneousFrags >= 2) {
                     // Handle 2+ players fragged at the same time event
                     PrintToConsoleAll ( "  - Player %s killed %d players at the same time/second (potential doublekill+)", killer, simultaneousFrags );
+                    Format ( info, sizeof(info), "SimultaneousFrags: %d", simultaneousFrags );
+                    logEvent ( killTimes[i][j], killer, victim, info );
                 }
             }
         }
@@ -328,6 +349,52 @@ public void analyzeKills() {
     PrintToChatAll ( "[OSGameAnalyzer]: End of Analyze" );
 
 }
+
+/* 
+    MariaDB [gameanalyzer]> desc event;
+    +--------+--------------+------+-----+---------+-------+
+    | Field  | Type         | Null | Key | Default | Extra |
+    +--------+--------------+------+-----+---------+-------+
+    | id     | int(11)      | NO   | PRI | NULL    |       |
+    | stamp  | datetime     | YES  |     | NULL    |       |
+    | round  | int(11)      | YES  |     | NULL    |       |
+    | killer | varchar(64)  | YES  |     | NULL    |       |
+    | victim | varchar(64)  | YES  |     | NULL    |       |
+    | info   | varchar(128) | YES  |     | NULL    |       |
+    +--------+--------------+------+-----+---------+-------+
+
+ */
+
+/* Log event */
+public void logEvent(int stamp, char[] killer, char[] victim, char[] info) { 
+    Handle stmt = null;
+
+    checkConnection();
+
+    if ( ( stmt = SQL_PrepareQuery ( mysql, "insert into event (stamp, round, killer, victim, info) values (from_unixtime(?), ?, ?, ?, ?)", error, sizeof(error) ) ) == null ) {
+        SQL_GetError ( mysql, error, sizeof(error) );
+        PrintToServer("[OSGameAnalyzer]: Failed to query[0x01] (error: %s)", error);
+        return;
+    }
+
+    SQL_BindParamInt    ( stmt, 0, stamp );
+    SQL_BindParamInt    ( stmt, 1, round );
+    SQL_BindParamString ( stmt, 2, killer, false );
+    SQL_BindParamString ( stmt, 3, victim, false );
+    SQL_BindParamString ( stmt, 4, info, false );
+
+    if ( ! SQL_Execute ( stmt ) ) {
+        SQL_GetError ( mysql, error, sizeof(error) );
+        PrintToServer("[OSGameAnalyzer]: Failed to query[0x02] (error: %s)", error);
+        return;
+    }
+
+    if ( stmt != null ) {
+        delete stmt;
+    }
+
+}
+
 
 
 public void resetPlayers() {
