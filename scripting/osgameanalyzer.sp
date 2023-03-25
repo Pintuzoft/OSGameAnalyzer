@@ -155,15 +155,17 @@ public void Event_PlayerHurt(Event event, const char[] name, bool dontBroadcast)
 }
 
 public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast) {
+    char killerName[64];
+    char victimName[64];
     int killer = GetClientOfUserId(GetEventInt(event, "attacker"));
     int victim = GetClientOfUserId(GetEventInt(event, "userid"));
+    int kTeam = GetClientTeam(killer);
+    int vTeam = GetClientTeam(victim);
 
     if (!playerIsReal(killer) || !playerIsReal(victim)) {
         return;
     }
 
-    char killerName[64];
-    char victimName[64];
     GetClientName(killer, killerName, sizeof(killerName));
     GetClientName(victim, victimName, sizeof(victimName));
 
@@ -178,24 +180,25 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
     PrintToConsoleAll("Weapon: %s", weapon); // Add this line to print the weapon string value
 
     killIsHeadShot[killer][count[killer]] = GetEventInt(event, "headshot") == 1;
-    killIsTeamKill[killer][count[killer]] = GetEventInt(event, "assister") != 0;
+
+    killIsTeamKill[killer][count[killer]] = kTeam == vTeam;
     killIsSuicide[killer][count[killer]] = killer == victim;
     killIsScoped[killer][count[killer]] = GetEventInt(event, "scoped") == 1;
     killIsImpact[killer][count[killer]] = false;
     
-    if (weaponMatches(weapon, "hegrenade") || 
-        weaponMatches(weapon, "flashbang") || 
-        weaponMatches(weapon, "smokegrenade") || 
-        weaponMatches(weapon, "decoy") || 
-        weaponMatches(weapon, "incendiarygrenade") || 
-        weaponMatches(weapon, "molotov") || 
-        weaponMatches(weapon, "tagrenade")) {
+    if ( isWeapon ( weapon, "hegrenade" ) || 
+         isWeapon ( weapon, "flashbang" ) || 
+         isWeapon ( weapon, "smokegrenade" ) || 
+         isWeapon ( weapon, "decoy" ) || 
+         isWeapon ( weapon, "incendiarygrenade" ) || 
+         isWeapon ( weapon, "molotov" ) || 
+         isWeapon ( weapon, "tagrenade" ) ) {
         
         if ( lastHitDamage[victim] < 3 ) {
             int found = 0;
             for ( int i = 0; i < 4 && found == 0; i++ ) {
                 PrintToChatAll ( "2" );
-                if ( strcmp(grenades[killer][i], weapon) == 0 ) {
+                if (  isWeapon ( grenades[killer][i], weapon ) ) {
                     PrintToChatAll ( "[OSGameAnalyzer]: %s got hit by a %s and died. Logging event.", victimName, weapon );
                     killIsImpact[killer][count[killer]] = true;
                     found++;
@@ -307,7 +310,13 @@ public void analyzeKills() {
             lastFragTime = killTimes[i][j];
 
             // Check for unlikely weapon frags
-            if (weaponMatches(killWeapons[i][j], "decoy|flashbang|smokegrenade|hegrenade|incgrenade|molotov|tagrenade")) {
+            if ( isWeapon ( killWeapons[i][j], "decoy" ) ||
+                 isWeapon ( killWeapons[i][j], "flashbang" ) ||
+                 isWeapon ( killWeapons[i][j], "smokegrenade" ) ||
+                 isWeapon ( killWeapons[i][j], "hegrenade" ) || 
+                 isWeapon ( killWeapons[i][j], "incgrenade" ) ||
+                 isWeapon ( killWeapons[i][j], "molotov" ) ||
+                 isWeapon ( killWeapons[i][j], "tagrenade" ) ) {
                 // Handle unlikely weapon event
                 if (killIsImpact[i][j]) {   
                     PrintToConsoleAll ( "  - Player %s killed %s with %s", killer, victimNames[i][j], killWeapons[i][j] );
@@ -317,7 +326,8 @@ public void analyzeKills() {
             }
 
             // Check for knife or taser frags
-            if (weaponMatches(killWeapons[i][j], ".*knife|taser")) {
+            if (  isWeapon ( killWeapons[i][j], "knife" ) ||
+                  isWeapon ( killWeapons[i][j], "taser" ) ) {
                 // Handle knife or taser event
                 PrintToConsoleAll ( "  - Player %s killed %s with %s", killer, victimNames[i][j], killWeapons[i][j] );
                 Format ( info, sizeof(info), "Weapon: %s", killWeapons[i][j] );
@@ -325,7 +335,7 @@ public void analyzeKills() {
             }
 
             // Check for teamkills
-            if (killIsTeamKill[i][j]) {
+            if ( killIsTeamKill[i][j] ) {
                 // Handle teamkill event
                 PrintToConsoleAll ( "  - Player %s teamkilled %s", killer, victimNames[i][j] );
                 Format ( info, sizeof(info), "Teamkill: %s", killWeapons[i][j] );
@@ -333,7 +343,7 @@ public void analyzeKills() {
             }
 
             // Check for noscope frags
-            if ((strcmp(killWeapons[i][j], "awp") == 0 || strcmp(killWeapons[i][j], "ssg08") == 0) && !killIsScoped[i][j]) {
+            if ( isWeapon ( killWeapons[i][j], "awp" ) ||  isWeapon ( killWeapons[i][j], "ssg08" ) && !killIsScoped[i][j]) {
                 // Handle noscope event
                 PrintToConsoleAll ( "  - Player %s noscoped %s using %s", killer, victimNames[i][j], killWeapons[i][j] );
                 Format ( info, sizeof(info), "Noscope: %s", killWeapons[i][j] );
@@ -432,7 +442,7 @@ public void resetGrenades() {
     }
 }
 
-bool weaponMatches(const char[] weapon, const char[] pattern) {
+bool isWeapon ( const char[] weapon, const char[] pattern ) {
     return StrContains(weapon, pattern) != -1;
 }
 
