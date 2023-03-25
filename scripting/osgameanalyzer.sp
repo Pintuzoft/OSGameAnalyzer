@@ -163,6 +163,7 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
     GetClientName(killer, killerName, sizeof(killerName));
     GetClientName(victim, victimName, sizeof(victimName));
 
+    PrintToConsoleAll("count[killer]: %d", count[killer]);  
     strcopy(victimNames[killer][count[killer]], sizeof(victimName), victimName);
     killTimes[killer][count[killer]] = GetTime();
 
