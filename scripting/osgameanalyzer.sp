@@ -62,8 +62,6 @@ public void OnMapStart ( ) {
 
 /* EVENTS */
 public void Event_RoundStart(Event event, const char[] name, bool dontBroadcast) {
-    PrintToConsoleAll("Server name: %s", serverName);
-
     if ( ! isWarmup ( ) ) {
         round++;
     }
@@ -396,18 +394,19 @@ public void logEvent(int stamp, char[] killer, char[] victim, char[] info) {
 
     checkConnection();
 
-    if ( ( stmt = SQL_PrepareQuery ( mysql, "insert into event (stamp, map, round, killer, victim, info) values (from_unixtime(?), ?, ?, ?, ?, ?)", error, sizeof(error) ) ) == null ) {
+    if ( ( stmt = SQL_PrepareQuery ( mysql, "insert into event (stamp, server, map, round, killer, victim, info) values (from_unixtime(?), ?, ?, ?, ?, ?, ?)", error, sizeof(error) ) ) == null ) {
         SQL_GetError ( mysql, error, sizeof(error) );
         PrintToServer("[OSGameAnalyzer]: Failed to query[0x01] (error: %s)", error);
         return;
     }
 
     SQL_BindParamInt    ( stmt, 0, stamp );
-    SQL_BindParamString ( stmt, 1, map, false );
-    SQL_BindParamInt    ( stmt, 2, round );
-    SQL_BindParamString ( stmt, 3, killer, false );
-    SQL_BindParamString ( stmt, 4, victim, false );
-    SQL_BindParamString ( stmt, 5, info, false );
+    SQL_BindParamString ( stmt, 1, serverName, false );
+    SQL_BindParamString ( stmt, 2, map, false );
+    SQL_BindParamInt    ( stmt, 3, round );
+    SQL_BindParamString ( stmt, 4, killer, false );
+    SQL_BindParamString ( stmt, 5, victim, false );
+    SQL_BindParamString ( stmt, 6, info, false );
 
     if ( ! SQL_Execute ( stmt ) ) {
         SQL_GetError ( mysql, error, sizeof(error) );
