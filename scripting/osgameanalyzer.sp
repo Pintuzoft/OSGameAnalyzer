@@ -37,7 +37,7 @@ char grenades[MAXPLAYERS + 1][4][64];
 public void OnPluginStart() {
     databaseConnect();
 
-    GetConVarString(FindConVar("hostname"), serverName, sizeof(serverName));
+    GetConVarString(FindConVar("sv_hostname"), serverName, sizeof(serverName));
 
     HookEvent("round_start", Event_RoundStart);
     HookEvent("round_end", Event_RoundEnd);
