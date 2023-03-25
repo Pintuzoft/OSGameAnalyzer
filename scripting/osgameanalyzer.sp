@@ -16,7 +16,8 @@ public Plugin myinfo = {
     version = "0.01",
     url = "https://github.com/Pintuzoft/OSGameAnalyzer"
 };
-
+    
+char serverName[128]; 
 int round = 0;
 char map[64];
 
@@ -35,6 +36,9 @@ char grenades[MAXPLAYERS + 1][4][64];
 
 public void OnPluginStart() {
     databaseConnect();
+
+    GetConVarString(FindConVar("hostname"), serverName, sizeof(serverName));
+
     HookEvent("round_start", Event_RoundStart);
     HookEvent("round_end", Event_RoundEnd);
     HookEvent("player_death", Event_PlayerDeath);
@@ -59,6 +63,8 @@ public void OnMapStart ( ) {
 
 /* EVENTS */
 public void Event_RoundStart(Event event, const char[] name, bool dontBroadcast) {
+    PrintToConsoleAll("Server name: %s", serverName);
+
     if ( ! isWarmup ( ) ) {
         round++;
     }
@@ -198,7 +204,7 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
             int found = 0;
             for ( int i = 0; i < 4 && found == 0; i++ ) {
                 PrintToChatAll ( "2" );
-                if (  isWeapon ( grenades[killer][i], weapon ) ) {
+                if ( isWeapon ( grenades[killer][i], weapon ) ) {
                     PrintToChatAll ( "[OSGameAnalyzer]: %s got hit by a %s and died. Logging event.", victimName, weapon );
                     killIsImpact[killer][count[killer]] = true;
                     found++;
