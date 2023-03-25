@@ -59,14 +59,18 @@ public void OnMapStart ( ) {
 
 /* EVENTS */
 public void Event_RoundStart(Event event, const char[] name, bool dontBroadcast) {
-    round++;
+    if ( ! isWarmup ( ) ) {
+        round++;
+    }
     GetCurrentMap(map, sizeof(map));
 
     resetPlayers();
     resetGrenades();
 }
 public void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast) {
-    analyzeKills();
+    if ( ! isWarmup ( ) ) {
+        analyzeKills();
+    }
 }
 
 public void Event_GrenadeThrown(Event event, const char[] name, bool dontBroadcast) {
