@@ -16,7 +16,10 @@ public Plugin myinfo = {
     version = "0.01",
     url = "https://github.com/Pintuzoft/OSGameAnalyzer"
 };
-int round = 0; 
+
+int round = 0;
+char map[64];
+
 char victimNames[MAXPLAYERS + 1][16][64];
 int killTimes[MAXPLAYERS + 1][16];
 char killWeapons[MAXPLAYERS + 1][16][64];
@@ -57,6 +60,8 @@ public void OnMapStart ( ) {
 /* EVENTS */
 public void Event_RoundStart(Event event, const char[] name, bool dontBroadcast) {
     round++;
+    GetCurrentMap(map, sizeof(map));
+
     resetPlayers();
     resetGrenades();
 }
@@ -371,17 +376,18 @@ public void logEvent(int stamp, char[] killer, char[] victim, char[] info) {
 
     checkConnection();
 
-    if ( ( stmt = SQL_PrepareQuery ( mysql, "insert into event (stamp, round, killer, victim, info) values (from_unixtime(?), ?, ?, ?, ?)", error, sizeof(error) ) ) == null ) {
+    if ( ( stmt = SQL_PrepareQuery ( mysql, "insert into event (stamp, map, round, killer, victim, info) values (from_unixtime(?), ?, ?, ?, ?, ?)", error, sizeof(error) ) ) == null ) {
         SQL_GetError ( mysql, error, sizeof(error) );
         PrintToServer("[OSGameAnalyzer]: Failed to query[0x01] (error: %s)", error);
         return;
     }
 
     SQL_BindParamInt    ( stmt, 0, stamp );
-    SQL_BindParamInt    ( stmt, 1, round );
-    SQL_BindParamString ( stmt, 2, killer, false );
-    SQL_BindParamString ( stmt, 3, victim, false );
-    SQL_BindParamString ( stmt, 4, info, false );
+    SQL_BindParamString ( stmt, 1, map, false );
+    SQL_BindParamInt    ( stmt, 2, round );
+    SQL_BindParamString ( stmt, 3, killer, false );
+    SQL_BindParamString ( stmt, 4, victim, false );
+    SQL_BindParamString ( stmt, 5, info, false );
 
     if ( ! SQL_Execute ( stmt ) ) {
         SQL_GetError ( mysql, error, sizeof(error) );
