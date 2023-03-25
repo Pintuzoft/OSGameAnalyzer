@@ -36,8 +36,7 @@ char grenades[MAXPLAYERS + 1][4][64];
 
 public void OnPluginStart() {
     databaseConnect();
-
-    GetConVarString(FindConVar("sv_hostname"), serverName, sizeof(serverName));
+    CreateTimer(5.0, SetServerName);
 
     HookEvent("round_start", Event_RoundStart);
     HookEvent("round_end", Event_RoundEnd);
@@ -459,4 +458,10 @@ public int GetClientOfEnt(int entity) {
         }
     }
     return 0;
+}
+
+public Action SetServerName ( Handle timer ) {
+    GetConVarString(FindConVar("hostname"), serverName, sizeof(serverName));
+    PrintToServer("Server name: %s", serverName);
+    return Plugin_Stop; // Stop the timer
 }
