@@ -81,7 +81,7 @@ public void Event_GrenadeThrown(Event event, const char[] name, bool dontBroadca
     char grenade[64];
     GetEventString(event, "weapon", grenade, sizeof(grenade));
     addGrenade ( thrower, grenade );
-    PrintToConsoleAll ("Grenade thrown: %d", grenade);
+    //PrintToConsoleAll ("Grenade thrown: %d", grenade);
 }
 public void Event_HEGrenadeDetonate(Event event, const char[] name, bool dontBroadcast) {
     int player = GetClientOfUserId(GetEventInt(event, "userid"));
@@ -112,34 +112,34 @@ public void Event_TagrenadeDetonate(Event event, const char[] name, bool dontBro
     removeGrenade ( player, "tagrenade" );
 }
 public void removeGrenade ( int player, char grenade[64] ) {
-    PrintToConsoleAll ("removeGrenade: %s", grenade);
+    //PrintToConsoleAll ("removeGrenade: %s", grenade);
     for ( int i = 0; i < 4; i++ ) {
         if ( strcmp(grenades[player][i], grenade) == 0 ) {
             grenades[player][i] = "";
-            PrintToConsoleAll (" - Grenade removed: %s", grenade);
+            //PrintToConsoleAll (" - Grenade removed: %s", grenade);
             return;
         }
     }
     PrintToConsoleAll (" - Not removed: %s", grenade);
 }
 public void addGrenade ( int player, char grenade[64] ) {
-    PrintToConsoleAll ("addGrenade: %s", grenade);
+    //PrintToConsoleAll ("addGrenade: %s", grenade);
     for ( int i = 0; i < 4; i++ ) {
         if ( strcmp(grenades[player][i], "") == 0 ) {
             grenades[player][i] = grenade;
-            PrintToConsoleAll (" - Grenade added: %d", grenade);
+            //PrintToConsoleAll (" - Grenade added: %d", grenade);
             printGrenades ( player );
             return;
         }
     }
-    PrintToConsoleAll (" - Not added!");
+    //PrintToConsoleAll (" - Not added!");
     printGrenades ( player );
 }
 
 public void printGrenades ( int player ) {
     char playerName[64];
     GetClientName(player, playerName, sizeof(playerName));
-    PrintToConsoleAll ("printGrenades: %s", playerName);
+    //PrintToConsoleAll ("printGrenades: %s", playerName);
     for ( int i = 0; i < 4; i++ ) {
         PrintToConsoleAll (" - Grenade: %s", grenades[player][i]);
     }
@@ -172,7 +172,7 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
     GetClientName(killer, killerName, sizeof(killerName));
     GetClientName(victim, victimName, sizeof(victimName));
 
-    PrintToConsoleAll("count[killer]: %d", count[killer]);  
+    //PrintToConsoleAll("count[killer]: %d", count[killer]);  
     strcopy(victimNames[killer][count[killer]], sizeof(victimName), victimName);
     killTimes[killer][count[killer]] = GetTime();
 
@@ -180,7 +180,7 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
     GetEventString(event, "weapon", weapon, sizeof(weapon));
     strcopy(killWeapons[killer][count[killer]], sizeof(weapon), weapon);
 
-    PrintToConsoleAll("Weapon: %s", weapon); // Add this line to print the weapon string value
+    //PrintToConsoleAll("Weapon: %s", weapon); // Add this line to print the weapon string value
 
     killIsHeadShot[killer][count[killer]] = GetEventInt(event, "headshot") == 1;
 
@@ -200,55 +200,18 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
         if ( lastHitDamage[victim] < 3 ) {
             int found = 0;
             for ( int i = 0; i < 4 && found == 0; i++ ) {
-                PrintToChatAll ( "2" );
                 if ( isWeapon ( grenades[killer][i], weapon ) ) {
-                    PrintToChatAll ( "[OSGameAnalyzer]: %s got hit by a %s and died. Logging event.", victimName, weapon );
+                    PrintToServer ( "[OSGameAnalyzer]: %s got hit by a %s and died. Logging event.", victimName, weapon );
                     killIsImpact[killer][count[killer]] = true;
                     found++;
                 }
             }
         }
     }
-
-//        int grenadeEntity = GetEventInt(event, "inflictor_entindex");
-//        PrintToChatAll ("Killed by a grenade: %d", grenadeEntity);
-
-//        if (grenadeEntity != 0) {     
-//            Handle pack;
-//            CreateTimer(0.1, Timer_CheckGrenadeExistence, pack);
-//            WritePackCell(pack, grenadeEntity);
-//            WritePackString(pack, killerName);
-//            WritePackString(pack, victimName);
-//            WritePackString(pack, weapon);
-//        }
-  
-  
     count[killer]++;
 }
 
 /* METHODS */
-
-//public Action Timer_CheckGrenadeExistence(Handle timer, Handle:pack) {
-//    int grenadeEntity;
-//    char killer[64];
-//    char victim[64];
-//    char weapon[64];
-    
-//    ResetPack(pack);
-//    grenadeEntity = ReadPackCell(pack);
-//    ReadPackString(pack, killer, sizeof(killer));
-//    ReadPackString(pack, victim, sizeof(victim));
-//    ReadPackString(pack, weapon, sizeof(weapon));
-
-//    if (IsValidEntity(grenadeEntity)) {
-//        PrintToChatAll ("Grenade still exists");
-//    } else {
-//        PrintToChatAll ("Grenade doesn't exist");
-//    }
-//    CloseHandle(timer);
-//    return Plugin_Continue;
-//}
-
 
 public void databaseConnect() {
     if ((mysql = SQL_Connect("gameanalyzer", true, error, sizeof(error))) != null) {
@@ -269,7 +232,8 @@ public bool playerIsReal(int player) {
     return (player > 0 &&
             player <= MAXPLAYERS &&
             IsClientInGame(player) &&
-            !IsClientSourceTV(player));
+            ! IsFakeClient(player) &&
+            ! IsClientSourceTV(player));
 }
 
 /* isWarmup */
@@ -285,7 +249,7 @@ public void analyzeKills() {
     char killer[64];
     char victim[64];
     char info[64];
-    PrintToChatAll ( "[OSGameAnalyzer]: Analyzing data..." );
+    PrintToServer ( "[OSGameAnalyzer]: Analyzing data..." );
     for (int i = 1; i <= MAXPLAYERS; i++) {
         if (count[i] == 0) {
             continue;
@@ -295,7 +259,6 @@ public void analyzeKills() {
         int quickFrags = 0;
         int lastFragTime = killTimes[i][0];
 
-
         for (int j = 0; j < count[i]; j++) {
             victim = victimNames[i][j];
             // Check for 3+ frags in a short amount of time
@@ -303,7 +266,7 @@ public void analyzeKills() {
                 quickFrags++;
                 if (quickFrags >= 3) {
                     // Handle the quick frags event
-                    PrintToConsoleAll ("  - Player %s has done %d frags within 5 seconds!", killer, quickFrags);
+                    PrintToServer ("  - Player %s has done %d frags within 5 seconds!", killer, quickFrags);
                     Format ( info, sizeof(info), "QuickFrags: %d", quickFrags ); 
                     logEvent ( killTimes[i][j], killer, victim, info );
                 }
@@ -322,7 +285,7 @@ public void analyzeKills() {
                  isWeapon ( killWeapons[i][j], "tagrenade" ) ) {
                 // Handle unlikely weapon event
                 if (killIsImpact[i][j]) {   
-                    PrintToConsoleAll ( "  - Player %s killed %s with %s", killer, victimNames[i][j], killWeapons[i][j] );
+                    PrintToServer ( "  - Player %s killed %s with %s", killer, victimNames[i][j], killWeapons[i][j] );
                     Format ( info, sizeof(info), "GrenadeImpact: %s", killWeapons[i][j] );
                     logEvent ( killTimes[i][j], killer, victim, info );
                 }
@@ -332,7 +295,7 @@ public void analyzeKills() {
             if (  isWeapon ( killWeapons[i][j], "knife" ) ||
                   isWeapon ( killWeapons[i][j], "taser" ) ) {
                 // Handle knife or taser event
-                PrintToConsoleAll ( "  - Player %s killed %s with %s", killer, victimNames[i][j], killWeapons[i][j] );
+                PrintToServer ( "  - Player %s killed %s with %s", killer, victimNames[i][j], killWeapons[i][j] );
                 Format ( info, sizeof(info), "Weapon: %s", killWeapons[i][j] );
                 logEvent ( killTimes[i][j], killer, victim, info );
             }
@@ -340,7 +303,7 @@ public void analyzeKills() {
             // Check for teamkills
             if ( killIsTeamKill[i][j] ) {
                 // Handle teamkill event
-                PrintToConsoleAll ( "  - Player %s teamkilled %s", killer, victimNames[i][j] );
+                PrintToServer ( "  - Player %s teamkilled %s", killer, victimNames[i][j] );
                 Format ( info, sizeof(info), "Teamkill: %s", killWeapons[i][j] );
                 logEvent ( killTimes[i][j], killer, victim, info );
             }
@@ -348,7 +311,7 @@ public void analyzeKills() {
             // Check for noscope frags
             if ( isWeapon ( killWeapons[i][j], "awp" ) ||  isWeapon ( killWeapons[i][j], "ssg08" ) && !killIsScoped[i][j]) {
                 // Handle noscope event
-                PrintToConsoleAll ( "  - Player %s noscoped %s using %s", killer, victimNames[i][j], killWeapons[i][j] );
+                PrintToServer ( "  - Player %s noscoped %s using %s", killer, victimNames[i][j], killWeapons[i][j] );
                 Format ( info, sizeof(info), "Noscope: %s", killWeapons[i][j] );
                 logEvent ( killTimes[i][j], killer, victim, info );
             }
@@ -362,14 +325,14 @@ public void analyzeKills() {
                 }
                 if (simultaneousFrags >= 2) {
                     // Handle 2+ players fragged at the same time event
-                    PrintToConsoleAll ( "  - Player %s killed %d players at the same time/second (potential doublekill+)", killer, simultaneousFrags );
+                    PrintToServer ( "  - Player %s killed %d players at the same time/second (potential doublekill+)", killer, simultaneousFrags );
                     Format ( info, sizeof(info), "SimultaneousFrags: %d", simultaneousFrags );
                     logEvent ( killTimes[i][j], killer, victim, info );
                 }
             }
         }
     }
-    PrintToChatAll ( "[OSGameAnalyzer]: End of Analyze" );
+    PrintToServer ( "[OSGameAnalyzer]: End of Analyze" );
 
 }
 
