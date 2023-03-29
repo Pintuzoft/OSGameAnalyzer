@@ -120,7 +120,7 @@ public void removeGrenade ( int player, char grenade[64] ) {
             return;
         }
     }
-    PrintToConsoleAll (" - Not removed: %s", grenade);
+    //PrintToConsoleAll (" - Not removed: %s", grenade);
 }
 public void addGrenade ( int player, char grenade[64] ) {
     //PrintToConsoleAll ("addGrenade: %s", grenade);
@@ -141,7 +141,7 @@ public void printGrenades ( int player ) {
     GetClientName(player, playerName, sizeof(playerName));
     //PrintToConsoleAll ("printGrenades: %s", playerName);
     for ( int i = 0; i < 4; i++ ) {
-        PrintToConsoleAll (" - Grenade: %s", grenades[player][i]);
+        //PrintToConsoleAll (" - Grenade: %s", grenades[player][i]);
     }
 }
 
