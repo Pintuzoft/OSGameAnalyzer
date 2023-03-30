@@ -112,36 +112,19 @@ public void Event_TagrenadeDetonate(Event event, const char[] name, bool dontBro
     removeGrenade ( player, "tagrenade" );
 }
 public void removeGrenade ( int player, char grenade[64] ) {
-    //PrintToConsoleAll ("removeGrenade: %s", grenade);
     for ( int i = 0; i < 4; i++ ) {
         if ( strcmp(grenades[player][i], grenade) == 0 ) {
             grenades[player][i] = "";
-            //PrintToConsoleAll (" - Grenade removed: %s", grenade);
             return;
         }
     }
-    //PrintToConsoleAll (" - Not removed: %s", grenade);
 }
 public void addGrenade ( int player, char grenade[64] ) {
-    //PrintToConsoleAll ("addGrenade: %s", grenade);
     for ( int i = 0; i < 4; i++ ) {
         if ( strcmp(grenades[player][i], "") == 0 ) {
             grenades[player][i] = grenade;
-            //PrintToConsoleAll (" - Grenade added: %d", grenade);
-            printGrenades ( player );
             return;
         }
-    }
-    //PrintToConsoleAll (" - Not added!");
-    printGrenades ( player );
-}
-
-public void printGrenades ( int player ) {
-    char playerName[64];
-    GetClientName(player, playerName, sizeof(playerName));
-    //PrintToConsoleAll ("printGrenades: %s", playerName);
-    for ( int i = 0; i < 4; i++ ) {
-        //PrintToConsoleAll (" - Grenade: %s", grenades[player][i]);
     }
 }
 
@@ -172,15 +155,12 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
     GetClientName(killer, killerName, sizeof(killerName));
     GetClientName(victim, victimName, sizeof(victimName));
 
-    //PrintToConsoleAll("count[killer]: %d", count[killer]);  
     strcopy(victimNames[killer][count[killer]], sizeof(victimName), victimName);
     killTimes[killer][count[killer]] = GetTime();
 
     char weapon[64];
     GetEventString(event, "weapon", weapon, sizeof(weapon));
     strcopy(killWeapons[killer][count[killer]], sizeof(weapon), weapon);
-
-    //PrintToConsoleAll("Weapon: %s", weapon); // Add this line to print the weapon string value
 
     killIsHeadShot[killer][count[killer]] = GetEventBool(event, "headshot");
 
@@ -229,18 +209,18 @@ public void checkConnection() {
 
 /* return true if player is real */
 public bool playerIsReal(int player) {
-    return true;
-//    return (player > 0 &&
-//            player <= MAXPLAYERS &&
-//            IsClientInGame(player) &&
-//            ! IsFakeClient(player) &&
-//            ! IsClientSourceTV(player));
+//    return true;
+    return (player > 0 &&
+            player <= MAXPLAYERS &&
+            IsClientInGame(player) &&
+            ! IsFakeClient(player) &&
+            ! IsClientSourceTV(player));
 }
 
 /* isWarmup */
 public bool isWarmup() {
     if (GameRules_GetProp("m_bWarmupPeriod") == 1) {
-        return false;
+        return true;
     }
     return false;
 }
