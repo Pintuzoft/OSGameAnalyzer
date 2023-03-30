@@ -189,6 +189,10 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
     killIsScoped[killer][count[killer]] = GetEventBool(event, "noscope") == true;
     killIsImpact[killer][count[killer]] = false;
     
+    bool noscope = GetEventBool(event, "noscope") == true;
+
+    PrintToChatAll ( "%s killed %s with a %s (noscope: %b)", killerName, victimName, weapon, noscope );
+
 
 
     if ( isWeapon ( weapon, "hegrenade" ) || 
