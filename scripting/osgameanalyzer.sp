@@ -27,7 +27,7 @@ char killWeapons[MAXPLAYERS + 1][16][64];
 bool killIsHeadShot[MAXPLAYERS + 1][16];
 bool killIsTeamKill[MAXPLAYERS + 1][16];
 bool killIsSuicide[MAXPLAYERS + 1][16];
-bool killIsScoped[MAXPLAYERS + 1][16];
+bool killIsNoScope[MAXPLAYERS + 1][16];
 bool killIsImpact[MAXPLAYERS + 1][16];
 int count[MAXPLAYERS + 1];
  
@@ -182,19 +182,13 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 
     //PrintToConsoleAll("Weapon: %s", weapon); // Add this line to print the weapon string value
 
-    killIsHeadShot[killer][count[killer]] = GetEventBool(event, "headshot") == true;
+    killIsHeadShot[killer][count[killer]] = GetEventBool(event, "headshot");
 
     killIsTeamKill[killer][count[killer]] = kTeam == vTeam;
     killIsSuicide[killer][count[killer]] = killer == victim;
-    killIsScoped[killer][count[killer]] = GetEventBool(event, "noscope") == true;
+    killIsNoScope[killer][count[killer]] = GetEventBool(event, "noscope");
     killIsImpact[killer][count[killer]] = false;
     
-    bool noscope = GetEventBool(event, "noscope") == true;
-
-    PrintToChatAll ( "%s killed %s with a %s (noscope: %b)", killerName, victimName, weapon, noscope );
-
-
-
     if ( isWeapon ( weapon, "hegrenade" ) || 
          isWeapon ( weapon, "flashbang" ) || 
          isWeapon ( weapon, "smokegrenade" ) || 
@@ -235,11 +229,12 @@ public void checkConnection() {
 
 /* return true if player is real */
 public bool playerIsReal(int player) {
-    return (player > 0 &&
-            player <= MAXPLAYERS &&
-            IsClientInGame(player) &&
+    return true;
+//    return (player > 0 &&
+//            player <= MAXPLAYERS &&
+//            IsClientInGame(player) &&
 //            ! IsFakeClient(player) &&
-            ! IsClientSourceTV(player));
+//            ! IsClientSourceTV(player));
 }
 
 /* isWarmup */
@@ -315,7 +310,7 @@ public void analyzeKills() {
             }
 
             // Check for noscope frags
-            if ( isWeapon ( killWeapons[i][j], "awp" ) ||  isWeapon ( killWeapons[i][j], "ssg08" ) && !killIsScoped[i][j]) {
+            if ( isWeapon ( killWeapons[i][j], "awp" ) ||  isWeapon ( killWeapons[i][j], "ssg08" ) && killIsNoScope[i][j]) {
                 // Handle noscope event
                 PrintToServer ( "  - Player %s noscoped %s using %s", killer, victimNames[i][j], killWeapons[i][j] );
                 Format ( info, sizeof(info), "Noscope: %s", killWeapons[i][j] );
@@ -402,6 +397,7 @@ public void resetPlayers() {
             killIsTeamKill[i][j] = false;
             killIsSuicide[i][j] = false;
             killIsImpact[i][j] = false;
+            killIsNoScope[i][j] = false;
         }
         lastHitDamage[i] = 0;
     }
