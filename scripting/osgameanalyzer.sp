@@ -182,13 +182,15 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 
     //PrintToConsoleAll("Weapon: %s", weapon); // Add this line to print the weapon string value
 
-    killIsHeadShot[killer][count[killer]] = GetEventInt(event, "headshot") == 1;
+    killIsHeadShot[killer][count[killer]] = GetEventBool(event, "headshot") == true;
 
     killIsTeamKill[killer][count[killer]] = kTeam == vTeam;
     killIsSuicide[killer][count[killer]] = killer == victim;
-    killIsScoped[killer][count[killer]] = GetEventInt(event, "noscope") == 1;
+    killIsScoped[killer][count[killer]] = GetEventBool(event, "noscope") == true;
     killIsImpact[killer][count[killer]] = false;
     
+
+
     if ( isWeapon ( weapon, "hegrenade" ) || 
          isWeapon ( weapon, "flashbang" ) || 
          isWeapon ( weapon, "smokegrenade" ) || 
