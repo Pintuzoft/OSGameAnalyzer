@@ -186,7 +186,7 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 
     killIsTeamKill[killer][count[killer]] = kTeam == vTeam;
     killIsSuicide[killer][count[killer]] = killer == victim;
-    killIsScoped[killer][count[killer]] = GetEventInt(event, "scoped") == 1;
+    killIsScoped[killer][count[killer]] = GetEventInt(event, "noscope") == 1;
     killIsImpact[killer][count[killer]] = false;
     
     if ( isWeapon ( weapon, "hegrenade" ) || 
@@ -232,7 +232,7 @@ public bool playerIsReal(int player) {
     return (player > 0 &&
             player <= MAXPLAYERS &&
             IsClientInGame(player) &&
-            ! IsFakeClient(player) &&
+//            ! IsFakeClient(player) &&
             ! IsClientSourceTV(player));
 }
 
