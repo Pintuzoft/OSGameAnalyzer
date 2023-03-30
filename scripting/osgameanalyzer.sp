@@ -301,8 +301,16 @@ public void analyzeKills() {
                 logEvent ( killTimes[i][j], killer, victim, info );
             }
 
+            // Check for suicide
+
+            if ( killIsSuicide[i][j] ) {
+                PrintToServer ( "  - Player %s suicide", killer, victimNames[i][j] );
+                Format ( info, sizeof(info), "Suicide: %s", killWeapons[i][j] );
+                logEvent ( killTimes[i][j], killer, victim, info );
+            }
+
             // Check for teamkills
-            if ( killIsTeamKill[i][j] ) {
+            if ( killIsTeamKill[i][j] && ! killIsSuicide[i][j] ) {
                 // Handle teamkill event
                 PrintToServer ( "  - Player %s teamkilled %s", killer, victimNames[i][j] );
                 Format ( info, sizeof(info), "Teamkill: %s", killWeapons[i][j] );
