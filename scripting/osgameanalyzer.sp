@@ -239,7 +239,7 @@ public bool playerIsReal(int player) {
 /* isWarmup */
 public bool isWarmup() {
     if (GameRules_GetProp("m_bWarmupPeriod") == 1) {
-        return true;
+        return false;
     }
     return false;
 }
