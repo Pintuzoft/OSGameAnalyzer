@@ -298,7 +298,7 @@ public void analyzeKills() {
             }
 
             // Check for noscope frags
-            if ( isWeapon ( killWeapons[i][j], "awp" ) ||  isWeapon ( killWeapons[i][j], "ssg08" ) && killIsNoScope[i][j]) {
+            if ( ( isWeapon ( killWeapons[i][j], "awp" ) || isWeapon ( killWeapons[i][j], "ssg08" ) ) && killIsNoScope[i][j]) {
                 // Handle noscope event
                 PrintToServer ( "  - Player %s noscoped %s using %s", killer, victimNames[i][j], killWeapons[i][j] );
                 Format ( info, sizeof(info), "Noscope: %s", killWeapons[i][j] );
