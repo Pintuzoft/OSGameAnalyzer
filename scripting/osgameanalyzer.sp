@@ -319,6 +319,13 @@ public void analyzeKills() {
                     logEvent ( killTimes[i][j], killer, victim, info );
                 }
             }
+            // check for 3+ total frags for whole round
+            if ( count[i] >= 3 ) {
+                // Handle 3+ total frags for whole round event
+                PrintToServer ( "  - Player %s has done %d frags in this round", killer, count[i] );
+                Format ( info, sizeof(info), "TotalFrags: %d", count[i] );
+                logEvent ( killTimes[i][j], killer, victim, info );
+            }
         }
     }
     PrintToServer ( "[OSGameAnalyzer]: End of Analyze" );
