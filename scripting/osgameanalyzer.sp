@@ -20,9 +20,10 @@ public Plugin myinfo = {
 char serverName[128]; 
 int round = 0;
 char map[64];
-char killerNames[MAXPLAYERS+1][16][64];
-char victimNames[MAXPLAYERS+1][16][64];
-char victimSteamids[MAXPLAYERS+1][16][64];
+char killKillerNames[MAXPLAYERS+1][16][64];
+char killVictimNames[MAXPLAYERS+1][16][64];
+char killKillerSteamids[MAXPLAYERS+1][16][64];
+char killVictimSteamids[MAXPLAYERS+1][16][64];
 int killTimes[MAXPLAYERS + 1][16];
 char killWeapons[MAXPLAYERS + 1][16][64];
 bool killIsHeadShot[MAXPLAYERS + 1][16];
@@ -34,8 +35,6 @@ int killPenetrated[MAXPLAYERS + 1][16];
 bool killIsThrusmoke[MAXPLAYERS + 1][16];
 bool killIsBlinded[MAXPLAYERS + 1][16];
 
-char names[MAXPLAYERS + 1][64];
-char steamids[MAXPLAYERS+1][64];
 int count[MAXPLAYERS + 1];
  
 int lastHitDamage[MAXPLAYERS + 1];
@@ -49,8 +48,6 @@ public void OnPluginStart() {
     HookEvent("round_end", Event_RoundEnd);
     HookEvent("player_death", Event_PlayerDeath);
     HookEvent("player_hurt", Event_PlayerHurt);
-    HookEvent("player_connect", Event_PlayerConnect);
-    HookEvent("client_disconnect", Event_ClientDisconnect);
 
     HookEvent("grenade_thrown", Event_GrenadeThrown);
     HookEvent("hegrenade_detonate", Event_HEGrenadeDetonate);
@@ -83,35 +80,6 @@ public void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast) {
 //    if ( ! isWarmup ( ) ) {
         analyzeKills();
 //    }
-}
-
-public void Event_PlayerConnect(Event event, const char[] name, bool dontBroadcast) {
-    int player = GetClientOfUserId(GetEventInt(event, "userid"));
-    CreateTimer ( 2.0, SetPlayerInfo, player );
-}
-
-public Action SetPlayerInfo ( Handle timer, int player ) {
-    char name[64];
-    char steamid[64];
-//    if ( ! playerIsReal ( player ) ) {
-//        return Plugin_Handled;
-//    }
-    GetClientName(player, name, sizeof(name));
-    if ( player > 0 ) {
-        GetClientAuthId(player, AuthId_Steam2, steamid, sizeof(steamid));
-    } else {
-        steamid = "BOT";
-    }
-    names[player] = name;
-    steamids[player] = steamid;
-    PrintToConsoleAll ("Player Connected: %d: %s (%s)", player, name, steamid);
-    return Plugin_Handled;
-}
-
-public void Event_ClientDisconnect(Event event, const char[] name, bool dontBroadcast) {
-    int player = GetClientOfUserId(GetEventInt(event, "userid"));
-    names[player] = "";
-    steamids[player] = "";
 }
 
 public void Event_GrenadeThrown(Event event, const char[] name, bool dontBroadcast) {
@@ -183,13 +151,33 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
     int victim = GetClientOfUserId(GetEventInt(event, "userid"));
     int kTeam = GetClientTeam(killer);
     int vTeam = GetClientTeam(victim);
+    char killerName[64];
+    char victimName[64];
+    char killerSteamid[64];
+    char victimSteamid[64];
 
 //    if (!playerIsReal(killer) || !playerIsReal(victim)) {
 //        return;
 //    }
 
-    victimNames[killer][count[killer]] = names[victim];
-    victimSteamids[killer][count[killer]] = steamids[victim];
+
+    GetClientName(killer, killerName, sizeof(killerName));
+    GetClientName(victim, victimName, sizeof(victimName));
+    if ( killer > 0 ) {
+        GetClientAuthId(killer, AuthId_Steam2, killerSteamid, sizeof(killerSteamid));
+    } else {
+        killerSteamid = "BOT";
+    }
+    if ( victim > 0 ) {
+        GetClientAuthId(victim, AuthId_Steam2, victimSteamid, sizeof(victimSteamid));
+    } else {
+        victimSteamid = "BOT";
+    }
+
+    killKillerNames[killer][count[killer]] = killerName;
+    killKillerSteamids[killer][count[killer]] = killerSteamid;
+    killVictimNames[killer][count[killer]] = victimName;
+    killVictimSteamids[killer][count[killer]] = victimSteamid;
 
     killTimes[killer][count[killer]] = GetTime();
 
@@ -275,15 +263,14 @@ PrintToConsoleAll ("2");
             continue;
         }
 PrintToConsoleAll ("3");
-        
-        Format ( killer, sizeof(killer), "%s", killerNames[i] );
+        Format ( killer, sizeof(killer), "%s", killKillerNames[i][0] );
 
         int quickFrags = 0;
         int lastFragTime = killTimes[i][0];
 
         for (int j = 0; j < count[i]; j++) {
 PrintToConsoleAll ("4");
-            victim = victimNames[i][j];
+            Format ( victim, sizeof(victim), "%s", killVictimNames[i][j] );
 
             logkill ( i, j );
 PrintToConsoleAll ("5");
@@ -311,7 +298,7 @@ PrintToConsoleAll ("5");
                  isWeapon ( killWeapons[i][j], "tagrenade" ) ) {
                 // Handle unlikely weapon event
                 if (killIsImpact[i][j]) {   
-                    PrintToServer ( "  - Player %s killed %s with %s", killer, victimNames[i][j], killWeapons[i][j] );
+                    PrintToServer ( "  - Player %s killed %s with %s", killer, killVictimNames[i][j], killWeapons[i][j] );
                     Format ( info, sizeof(info), "GrenadeImpact: %s", killWeapons[i][j] );
                     logEvent ( killTimes[i][j], killer, victim, info );
                 }
@@ -321,7 +308,7 @@ PrintToConsoleAll ("5");
             if (  isWeapon ( killWeapons[i][j], "knife" ) ||
                   isWeapon ( killWeapons[i][j], "taser" ) ) {
                 // Handle knife or taser event
-                PrintToServer ( "  - Player %s killed %s with %s", killer, victimNames[i][j], killWeapons[i][j] );
+                PrintToServer ( "  - Player %s killed %s with %s", killer, killVictimNames[i][j], killWeapons[i][j] );
                 Format ( info, sizeof(info), "Weapon: %s", killWeapons[i][j] );
                 logEvent ( killTimes[i][j], killer, victim, info );
             }
@@ -329,7 +316,7 @@ PrintToConsoleAll ("5");
             // Check for suicide
 
             if ( killIsSuicide[i][j] ) {
-                PrintToServer ( "  - Player %s suicide", killer, victimNames[i][j] );
+                PrintToServer ( "  - Player %s suicide", killer, killVictimNames[i][j] );
                 Format ( info, sizeof(info), "Suicide: %s", killWeapons[i][j] );
                 logEvent ( killTimes[i][j], killer, victim, info );
             }
@@ -337,7 +324,7 @@ PrintToConsoleAll ("5");
             // Check for teamkills
             if ( killIsTeamKill[i][j] && ! killIsSuicide[i][j] ) {
                 // Handle teamkill event
-                PrintToServer ( "  - Player %s teamkilled %s", killer, victimNames[i][j] );
+                PrintToServer ( "  - Player %s teamkilled %s", killer, killVictimNames[i][j] );
                 Format ( info, sizeof(info), "Teamkill: %s", killWeapons[i][j] );
                 logEvent ( killTimes[i][j], killer, victim, info );
             }
@@ -345,7 +332,7 @@ PrintToConsoleAll ("5");
             // Check for noscope frags
             if ( ( isWeapon ( killWeapons[i][j], "awp" ) || isWeapon ( killWeapons[i][j], "ssg08" ) ) && killIsNoScope[i][j]) {
                 // Handle noscope event
-                PrintToServer ( "  - Player %s noscoped %s using %s", killer, victimNames[i][j], killWeapons[i][j] );
+                PrintToServer ( "  - Player %s noscoped %s using %s", killer, killVictimNames[i][j], killWeapons[i][j] );
                 Format ( info, sizeof(info), "Noscope: %s", killWeapons[i][j] );
                 logEvent ( killTimes[i][j], killer, victim, info );
             }
@@ -471,11 +458,13 @@ PrintToConsoleAll (" - 1");
     }
 PrintToConsoleAll (" - 2");
 
-    killerName = names[killer];
-    victimName = victimNames[killer][killid];
 
-    killerSteamid = steamids[killer];
-    victimSteamid = victimSteamids[killer][killid];
+
+    killerName = killKillerNames[killer][killid];
+    victimName = killVictimNames[killer][killid];
+
+    killerSteamid = killKillerSteamids[killer][killid];
+    victimSteamid = killVictimSteamids[killer][killid];
 
     stamp = killTimes[killer][killid];
     weapon = killWeapons[killer][killid];
@@ -546,7 +535,10 @@ public void resetPlayers() {
     for (int i = 1; i <= MAXPLAYERS; i++) {
         count[i] = 0;
         for (int j = 0; j < 16; j++) {
-            victimNames[i][j][0] = '\0';
+            killKillerNames[i][j][0] = '\0';
+            killVictimNames[i][j][0] = '\0';
+            killKillerSteamids[i][j][0] = '\0';
+            killVictimSteamids[i][j][0] = '\0';
             killTimes[i][j] = 0;
             killWeapons[i][j][0] = '\0';
             killIsHeadShot[i][j] = false;
