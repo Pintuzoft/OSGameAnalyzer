@@ -93,13 +93,14 @@ public void Event_PlayerConnect(Event event, const char[] name, bool dontBroadca
 public Action SetPlayerInfo ( Handle timer, int player ) {
     char name[64];
     char steamid[64];
-    if ( ! playerIsReal ( player ) ) {
-        return Plugin_Handled;
-    }
+//    if ( ! playerIsReal ( player ) ) {
+//        return Plugin_Handled;
+//    }
     GetClientName(player, name, sizeof(name));
     GetClientAuthId(player, AuthId_Steam2, steamid, sizeof(steamid));
     names[player] = name;
     steamids[player] = steamid;
+    PrintToConsoleAll ("Player Connected: %d: %s (%s)", player, name, steamid);
     return Plugin_Handled;
 }
 
