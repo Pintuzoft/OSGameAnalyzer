@@ -20,8 +20,9 @@ public Plugin myinfo = {
 char serverName[128]; 
 int round = 0;
 char map[64];
-
-char victimNames[MAXPLAYERS + 1][16][64];
+char killerNames[MAXPLAYERS+1][16][64];
+char victimNames[MAXPLAYERS+1][16][64];
+char victimSteamids[MAXPLAYERS+1][16][64];
 int killTimes[MAXPLAYERS + 1][16];
 char killWeapons[MAXPLAYERS + 1][16][64];
 bool killIsHeadShot[MAXPLAYERS + 1][16];
@@ -29,6 +30,12 @@ bool killIsTeamKill[MAXPLAYERS + 1][16];
 bool killIsSuicide[MAXPLAYERS + 1][16];
 bool killIsNoScope[MAXPLAYERS + 1][16];
 bool killIsImpact[MAXPLAYERS + 1][16];
+int killPenetrated[MAXPLAYERS + 1][16];
+bool killIsThrusmoke[MAXPLAYERS + 1][16];
+bool killIsBlinded[MAXPLAYERS + 1][16];
+
+char names[MAXPLAYERS + 1][64];
+char steamids[MAXPLAYERS+1][64];
 int count[MAXPLAYERS + 1];
  
 int lastHitDamage[MAXPLAYERS + 1];
@@ -42,6 +49,8 @@ public void OnPluginStart() {
     HookEvent("round_end", Event_RoundEnd);
     HookEvent("player_death", Event_PlayerDeath);
     HookEvent("player_hurt", Event_PlayerHurt);
+    HookEvent("client_connected", Event_ClientConnected);
+    HookEvent("client_disconnected", Event_ClientDisconnected);
 
     HookEvent("grenade_thrown", Event_GrenadeThrown);
     HookEvent("hegrenade_detonate", Event_HEGrenadeDetonate);
@@ -74,6 +83,27 @@ public void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast) {
     if ( ! isWarmup ( ) ) {
         analyzeKills();
     }
+}
+
+public void Event_ClientConnected(Event event, const char[] name, bool dontBroadcast) {
+    int player = GetClientOfUserId(GetEventInt(event, "userid"));
+    CreateTimer ( 2.0, SetPlayerInfo, player );
+}
+
+public Action SetPlayerInfo ( Handle timer, int player ) {
+    char name[64];
+    char steamid[64];
+    GetClientName(player, name, sizeof(name));
+    GetClientAuthId(player, AuthId_Steam2, steamid, sizeof(steamid));
+    names[player] = name;
+    steamids[player] = steamid;
+    return Plugin_Handled;
+}
+
+public void Event_ClientDisconnected(Event event, const char[] name, bool dontBroadcast) {
+    int player = GetClientOfUserId(GetEventInt(event, "userid"));
+    names[player] = "";
+    steamids[player] = "";
 }
 
 public void Event_GrenadeThrown(Event event, const char[] name, bool dontBroadcast) {
@@ -141,21 +171,18 @@ public void Event_PlayerHurt(Event event, const char[] name, bool dontBroadcast)
 }
 
 public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast) {
-    char killerName[64];
-    char victimName[64];
     int killer = GetClientOfUserId(GetEventInt(event, "attacker"));
     int victim = GetClientOfUserId(GetEventInt(event, "userid"));
     int kTeam = GetClientTeam(killer);
     int vTeam = GetClientTeam(victim);
 
-    if (!playerIsReal(killer) || !playerIsReal(victim)) {
-        return;
-    }
+//    if (!playerIsReal(killer) || !playerIsReal(victim)) {
+//        return;
+//    }
 
-    GetClientName(killer, killerName, sizeof(killerName));
-    GetClientName(victim, victimName, sizeof(victimName));
+    victimNames[killer][count[killer]] = names[victim];
+    victimSteamids[killer][count[killer]] = steamids[victim];
 
-    strcopy(victimNames[killer][count[killer]], sizeof(victimName), victimName);
     killTimes[killer][count[killer]] = GetTime();
 
     char weapon[64];
@@ -167,7 +194,10 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
     killIsTeamKill[killer][count[killer]] = kTeam == vTeam;
     killIsSuicide[killer][count[killer]] = killer == victim;
     killIsNoScope[killer][count[killer]] = GetEventBool(event, "noscope");
+    killIsThrusmoke[killer][count[killer]] = GetEventBool(event, "thrusmoke");
+    killPenetrated[killer][count[killer]] = GetEventBool(event, "penetrated");
     killIsImpact[killer][count[killer]] = false;
+
     
     if ( isWeapon ( weapon, "hegrenade" ) || 
          isWeapon ( weapon, "flashbang" ) || 
@@ -181,7 +211,6 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
             int found = 0;
             for ( int i = 0; i < 4 && found == 0; i++ ) {
                 if ( isWeapon ( grenades[killer][i], weapon ) ) {
-                    PrintToServer ( "[OSGameAnalyzer]: %s got hit by a %s and died. Logging event.", victimName, weapon );
                     killIsImpact[killer][count[killer]] = true;
                     found++;
                 }
@@ -236,12 +265,15 @@ public void analyzeKills() {
             continue;
         }
         
-        GetClientName(i, killer, sizeof(killer));
+        Format ( killer, sizeof(killer), "%s", killerNames[i] );
+
         int quickFrags = 0;
         int lastFragTime = killTimes[i][0];
 
         for (int j = 0; j < count[i]; j++) {
             victim = victimNames[i][j];
+
+            logkill ( i, j );
             // Check for 3+ frags in a short amount of time
             if (killTimes[i][j] - lastFragTime <= 5) {
                 quickFrags++;
@@ -319,13 +351,13 @@ public void analyzeKills() {
                     logEvent ( killTimes[i][j], killer, victim, info );
                 }
             }
-            // check for 3+ total frags for whole round
-            if ( count[i] >= 3 ) {
-                // Handle 3+ total frags for whole round event
-                PrintToServer ( "  - Player %s has done %d frags in this round", killer, count[i] );
-                Format ( info, sizeof(info), "TotalFrags: %d", count[i] );
-                logEvent ( killTimes[i][j], killer, victim, info );
-            }
+        }
+        // check for 3+ total frags for whole round
+        if ( count[i] >= 3 ) {
+            // Handle 3+ total frags for whole round event
+            PrintToServer ( "  - Player %s has done %d frags in this round", killer, count[i] );
+            Format ( info, sizeof(info), "TotalFrags: %d", count[i] );
+            logEvent ( killTimes[i][0], killer, victim, info );
         }
     }
     PrintToServer ( "[OSGameAnalyzer]: End of Analyze" );
@@ -355,7 +387,7 @@ public void logEvent(int stamp, char[] killer, char[] victim, char[] info) {
 
     if ( ( stmt = SQL_PrepareQuery ( mysql, "insert into event (stamp, server, map, round, killer, victim, info) values (from_unixtime(?), ?, ?, ?, ?, ?, ?)", error, sizeof(error) ) ) == null ) {
         SQL_GetError ( mysql, error, sizeof(error) );
-        PrintToServer("[OSGameAnalyzer]: Failed to query[0x01] (error: %s)", error);
+        PrintToServer("[OSGameAnalyzer]: Failed to prepare query[0x01] (error: %s)", error);
         return;
     }
 
@@ -369,7 +401,7 @@ public void logEvent(int stamp, char[] killer, char[] victim, char[] info) {
 
     if ( ! SQL_Execute ( stmt ) ) {
         SQL_GetError ( mysql, error, sizeof(error) );
-        PrintToServer("[OSGameAnalyzer]: Failed to query[0x02] (error: %s)", error);
+        PrintToServer("[OSGameAnalyzer]: Failed to execute[0x02] (error: %s)", error);
         return;
     }
 
@@ -379,6 +411,112 @@ public void logEvent(int stamp, char[] killer, char[] victim, char[] info) {
 
 }
 
+/**
+ 
+ CREATE TABLE `kills` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `map` varchar(64) NOT NULL,
+  `round` int(11) NOT NULL,
+  `stamp` datetime DEFAULT NULL,
+  `attacker_steamid` varchar(32) NOT NULL,
+  `attacker_name` varchar(64) NOT NULL,
+  `victim_steamid` varchar(32) NOT NULL,
+  `victim_name` varchar(64) NOT NULL,
+  `assister_steamid` varchar(32) NOT NULL,
+  `assister_name` varchar(64) NOT NULL,
+  `weapon` varchar(32) NOT NULL,
+  `suicide` int(11) NOT NULL,
+  `teamkill` int(11) NOT NULL,
+  `teamassist` int(11) NOT NULL,
+  `headshot` int(11) NOT NULL,
+  `penetrated` int(11) NOT NULL,
+  `thrusmoke` int(11) NOT NULL,
+  `blinded` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB;
+
+ */
+
+public void logkill ( int killer, int killid ) {
+    char killerName[64];
+    char victimName[64];
+    char killerSteamid[64];
+    char victimSteamid[64];
+    char weapon[64];
+    int stamp;
+    int suicide;
+    int teamkill;
+    int headshot;
+    int penetrated;
+    int thrusmoke;
+    int blinded;
+
+    if ( killTimes[killer][killid] == 0 ) {
+        return;
+    }
+
+    killerName = names[killer];
+    victimName = victimNames[killer][killid];
+
+    killerSteamid = steamids[killer];
+    victimSteamid = victimSteamids[killer][killid];
+
+    stamp = killTimes[killer][killid];
+    weapon = killWeapons[killer][killid];
+
+    suicide = killIsSuicide[killer][killid];
+    teamkill = killIsTeamKill[killer][killid];
+
+    headshot = killIsHeadShot[killer][killid];
+    penetrated = killPenetrated[killer][killid];
+
+    thrusmoke = killIsThrusmoke[killer][killid];
+    blinded = killIsBlinded[killer][killid];
+
+
+
+    Handle stmt = null;
+    checkConnection();
+
+    if ( ( stmt = SQL_PrepareQuery ( mysql, "insert into kill (stamp,server,map,round,killer_steamid,killer_name,victim_steamid,victim_name,weapon,suicide,teamkill,headshot,penetrated,thrusmoke,blinded) values (from_unixtime(?),?,?,?,?,?,?,?,?,?,?,?,?,?,?)", error, sizeof(error) ) ) == null ) {
+        SQL_GetError ( mysql, error, sizeof(error) );
+        PrintToServer("[OSGameAnalyzer]: Failed to prepare query[0x03] (error: %s)", error);
+        return;
+    }
+
+    SQL_BindParamInt ( stmt, 0, stamp );
+    SQL_BindParamString ( stmt, 1, serverName, false );
+    SQL_BindParamString ( stmt, 2, map, false );
+    SQL_BindParamInt ( stmt, 3, round );
+    SQL_BindParamString ( stmt, 4, killerSteamid, false );
+    SQL_BindParamString ( stmt, 5, killerName, false );
+    SQL_BindParamString ( stmt, 6, victimSteamid, false );
+    SQL_BindParamString ( stmt, 7, victimName, false );
+    SQL_BindParamString ( stmt, 8, weapon, false );
+    SQL_BindParamInt ( stmt, 9, suicide );
+    SQL_BindParamInt ( stmt, 10, teamkill );
+    SQL_BindParamInt ( stmt, 11, headshot );
+    SQL_BindParamInt ( stmt, 12, penetrated );
+    SQL_BindParamInt ( stmt, 13, thrusmoke );
+    SQL_BindParamInt ( stmt, 14, blinded );
+
+
+
+    if ( ! SQL_Execute ( stmt ) ) {
+        SQL_GetError ( mysql, error, sizeof(error) );
+        PrintToServer("[OSGameAnalyzer]: Failed to execute[0x04] (error: %s)", error);
+        return;
+    }
+
+    if ( stmt != null ) {
+        delete stmt;
+    }
+
+
+
+
+    
+}
 
 
 public void resetPlayers() {
