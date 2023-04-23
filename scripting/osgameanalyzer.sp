@@ -488,7 +488,8 @@ PrintToConsoleAll (" - 2");
 
     thrusmoke = killIsThrusmoke[killer][killid];
     blinded = killIsBlinded[killer][killid];
-PrintToConsoleAll (" - 3");
+PrintToConsoleAll (" - 3:%s:%s", killerName, killerSteamid);
+PrintToConsoleAll (" -  :%s:%s", victimName, victimSteamid);
 
 
 
