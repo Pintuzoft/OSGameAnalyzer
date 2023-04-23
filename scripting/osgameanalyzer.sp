@@ -49,7 +49,7 @@ public void OnPluginStart() {
     HookEvent("round_end", Event_RoundEnd);
     HookEvent("player_death", Event_PlayerDeath);
     HookEvent("player_hurt", Event_PlayerHurt);
-    HookEvent("client_connect", Event_ClientConnect);
+    HookEvent("player_connect", Event_PlayerConnect);
     HookEvent("client_disconnect", Event_ClientDisconnect);
 
     HookEvent("grenade_thrown", Event_GrenadeThrown);
@@ -85,7 +85,7 @@ public void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast) {
 //    }
 }
 
-public void Event_ClientConnect(Event event, const char[] name, bool dontBroadcast) {
+public void Event_PlayerConnect(Event event, const char[] name, bool dontBroadcast) {
     int player = GetClientOfUserId(GetEventInt(event, "userid"));
     CreateTimer ( 2.0, SetPlayerInfo, player );
 }
