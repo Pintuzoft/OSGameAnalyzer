@@ -496,7 +496,7 @@ PrintToConsoleAll (" - 3");
     checkConnection();
 PrintToConsoleAll (" - 4");
 
-    if ( ( stmt = SQL_PrepareQuery ( mysql, "insert into kill (stamp,server,map,round,killer_steamid,killer_name,victim_steamid,victim_name,weapon,suicide,teamkill,headshot,penetrated,thrusmoke,blinded) values (from_unixtime(?),?,?,?,?,?,?,?,?,?,?,?,?,?,?)", error, sizeof(error) ) ) == null ) {
+    if ( ( stmt = SQL_PrepareQuery ( mysql, "insert into kills (stamp,server,map,round,killer_steamid,killer_name,victim_steamid,victim_name,weapon,suicide,teamkill,headshot,penetrated,thrusmoke,blinded) values (from_unixtime(?),?,?,?,?,?,?,?,?,?,?,?,?,?,?)", error, sizeof(error) ) ) == null ) {
         SQL_GetError ( mysql, error, sizeof(error) );
         PrintToServer("[OSGameAnalyzer]: Failed to prepare query[0x03] (error: %s)", error);
         return;
