@@ -97,7 +97,11 @@ public Action SetPlayerInfo ( Handle timer, int player ) {
 //        return Plugin_Handled;
 //    }
     GetClientName(player, name, sizeof(name));
-    GetClientAuthId(player, AuthId_Steam2, steamid, sizeof(steamid));
+    if ( player > 0 ) {
+        GetClientAuthId(player, AuthId_Steam2, steamid, sizeof(steamid));
+    } else {
+        steamid = "BOT";
+    }
     names[player] = name;
     steamids[player] = steamid;
     PrintToConsoleAll ("Player Connected: %d: %s (%s)", player, name, steamid);
@@ -241,12 +245,12 @@ public void checkConnection() {
 
 /* return true if player is real */
 public bool playerIsReal(int player) {
-//    return true;
-    return (player > 0 &&
-            player <= MAXPLAYERS &&
-            IsClientInGame(player) &&
-            ! IsFakeClient(player) &&
-            ! IsClientSourceTV(player));
+    return true;
+//    return (player > 0 &&
+//            player <= MAXPLAYERS &&
+//            IsClientInGame(player) &&
+//            ! IsFakeClient(player) &&
+//            ! IsClientSourceTV(player));
 }
 
 /* isWarmup */
