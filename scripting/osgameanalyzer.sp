@@ -193,8 +193,8 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 
     killIsHeadShot[killer][count[killer]] = GetEventBool(event, "headshot");
 
-    killIsTeamKill[killer][count[killer]] = kTeam == vTeam;
     killIsSuicide[killer][count[killer]] = killer == victim;
+    killIsTeamKill[killer][count[killer]] = (kTeam == vTeam && killer != victim);
     killIsNoScope[killer][count[killer]] = GetEventBool(event, "noscope");
     killIsThrusmoke[killer][count[killer]] = GetEventBool(event, "thrusmoke");
     killPenetrated[killer][count[killer]] = GetEventBool(event, "penetrated");
