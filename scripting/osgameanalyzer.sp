@@ -157,6 +157,16 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 //        return;
 //    }
 
+    char weapon[64];
+    GetEventString(event, "weapon", weapon, sizeof(weapon));
+    
+    // Get the inflictor entity index
+    int inflictorEntity = GetEventInt(event, "inflictor");
+
+    // Check if the weapon is the "c4" (bomb) and the inflictor entity is a valid bomb entity
+    if (StrEqual(weapon, "c4") && IsValidBombEntity(inflictorEntity)) {
+        return;
+    }
 
     GetClientName(killer, killerName, sizeof(killerName));
     GetClientName(victim, victimName, sizeof(victimName));
@@ -178,8 +188,7 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 
     killTimes[killer][count[killer]] = GetTime();
 
-    char weapon[64];
-    GetEventString(event, "weapon", weapon, sizeof(weapon));
+
     strcopy(killWeapons[killer][count[killer]], sizeof(weapon), weapon);
 
     killIsHeadShot[killer][count[killer]] = GetEventBool(event, "headshot");
@@ -245,7 +254,22 @@ public bool isWarmup() {
     }
     return false;
 }
- 
+
+bool IsValidBombEntity(int entityIndex)
+{
+    // Check for valid entity index
+    if (entityIndex <= 0) {
+        return false;
+    }
+
+    // Get the entity's class name
+    char className[64];
+    GetEntityClassname(entityIndex, className, sizeof(className));
+
+    // Check if the class name is "planted_c4" (the bomb)
+    return StrEqual(className, "planted_c4");
+}
+
 /* analyze kills for each player */
 public void analyzeKills() {
     char killer[64];
