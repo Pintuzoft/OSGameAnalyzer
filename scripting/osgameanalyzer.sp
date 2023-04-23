@@ -159,12 +159,12 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 
     char weapon[64];
     GetEventString(event, "weapon", weapon, sizeof(weapon));
-    
+
     // Get the inflictor entity index
     int inflictorEntity = GetEventInt(event, "inflictor");
 
     // Check if the weapon is the "c4" (bomb) and the inflictor entity is a valid bomb entity
-    if (StrEqual(weapon, "c4") && IsValidBombEntity(inflictorEntity)) {
+    if (StrEqual(weapon, "world") && IsValidBombEntity(inflictorEntity)) {
         return;
     }
 
