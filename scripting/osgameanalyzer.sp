@@ -68,11 +68,8 @@ public void OnMapStart ( ) {
 
 /* EVENTS */
 public void Event_RoundStart(Event event, const char[] name, bool dontBroadcast) {
-    if ( ! isWarmup ( ) ) {
-        round++;
-    }
+    round = (GetTeamScore ( CS_TEAM_T ) + GetTeamScore ( CS_TEAM_CT ) + 1);
     GetCurrentMap(map, sizeof(map));
-
     resetPlayers();
     resetGrenades();
 }
@@ -254,26 +251,20 @@ public void analyzeKills() {
     char killer[64];
     char victim[64];
     char info[64];
-PrintToConsoleAll ("0");
     PrintToServer ( "[OSGameAnalyzer]: Analyzing data..." );
     for (int i = 1; i <= MAXPLAYERS; i++) {
-PrintToConsoleAll ("1");
         if (count[i] == 0) {
-PrintToConsoleAll ("2");
             continue;
         }
-PrintToConsoleAll ("3");
         Format ( killer, sizeof(killer), "%s", killKillerNames[i][0] );
 
         int quickFrags = 0;
         int lastFragTime = killTimes[i][0];
 
         for (int j = 0; j < count[i]; j++) {
-PrintToConsoleAll ("4");
             Format ( victim, sizeof(victim), "%s", killVictimNames[i][j] );
 
             logkill ( i, j );
-PrintToConsoleAll ("5");
             // Check for 3+ frags in a short amount of time
             if (killTimes[i][j] - lastFragTime <= 5) {
                 quickFrags++;
@@ -450,13 +441,10 @@ public void logkill ( int killer, int killid ) {
     int penetrated;
     int thrusmoke;
     int blinded;
-PrintToConsoleAll (" - 0");
 
     if ( killTimes[killer][killid] == 0 ) {
-PrintToConsoleAll (" - 1");
         return;
     }
-PrintToConsoleAll (" - 2");
 
 
 
@@ -477,21 +465,15 @@ PrintToConsoleAll (" - 2");
 
     thrusmoke = killIsThrusmoke[killer][killid];
     blinded = killIsBlinded[killer][killid];
-PrintToConsoleAll (" - 3:%s:%s", killerName, killerSteamid);
-PrintToConsoleAll (" -  :%s:%s", victimName, victimSteamid);
-
-
 
     Handle stmt = null;
     checkConnection();
-PrintToConsoleAll (" - 4");
 
     if ( ( stmt = SQL_PrepareQuery ( mysql, "insert into kills (stamp,server,map,round,killer_steamid,killer_name,victim_steamid,victim_name,weapon,suicide,teamkill,headshot,penetrated,thrusmoke,blinded) values (from_unixtime(?),?,?,?,?,?,?,?,?,?,?,?,?,?,?)", error, sizeof(error) ) ) == null ) {
         SQL_GetError ( mysql, error, sizeof(error) );
         PrintToServer("[OSGameAnalyzer]: Failed to prepare query[0x03] (error: %s)", error);
         return;
     }
-PrintToConsoleAll (" - 5");
 
     SQL_BindParamInt ( stmt, 0, stamp );
     SQL_BindParamString ( stmt, 1, serverName, false );
@@ -509,24 +491,15 @@ PrintToConsoleAll (" - 5");
     SQL_BindParamInt ( stmt, 13, thrusmoke );
     SQL_BindParamInt ( stmt, 14, blinded );
 
-PrintToConsoleAll (" - 6");
-
-
     if ( ! SQL_Execute ( stmt ) ) {
         SQL_GetError ( mysql, error, sizeof(error) );
         PrintToServer("[OSGameAnalyzer]: Failed to execute[0x04] (error: %s)", error);
         return;
     }
-PrintToConsoleAll (" - 7");
 
     if ( stmt != null ) {
         delete stmt;
     }
-
-PrintToConsoleAll (" - 8");
-
-
-
     
 }
 
