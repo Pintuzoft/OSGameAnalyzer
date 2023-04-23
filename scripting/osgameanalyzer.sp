@@ -80,9 +80,9 @@ public void Event_RoundStart(Event event, const char[] name, bool dontBroadcast)
     resetGrenades();
 }
 public void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast) {
-    if ( ! isWarmup ( ) ) {
+//    if ( ! isWarmup ( ) ) {
         analyzeKills();
-    }
+//    }
 }
 
 public void Event_ClientConnected(Event event, const char[] name, bool dontBroadcast) {
