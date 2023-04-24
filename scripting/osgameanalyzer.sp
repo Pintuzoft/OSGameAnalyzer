@@ -8,6 +8,10 @@
 
 char error[255];
 Handle mysql = null;
+ConVar osga_enabled;
+ConVar osga_statsminplayers;
+int numRealPlayers = 0;
+
 
 public Plugin myinfo = {
     name = "OSGameAnalyzer",
@@ -58,9 +62,13 @@ public void OnPluginStart() {
     HookEvent("decoy_detonate", Event_DecoyDetonate);
     HookEvent("tagrenade_detonate", Event_TagrenadeDetonate);
 
+    osga_enabled = CreateConVar ( "osga_enabled", "1", "Enable plugin" );
+    osga_statsminplayers = CreateConVar ( "osga_statsminplayers", "4", "Minimum number of real players to start logging stats" );
+    
     resetPlayers();
     resetGrenades();
 
+    AutoExecConfig ( true, "osgameanalyzer" );
 }
 public void OnMapStart ( ) {
     round = 0;
@@ -68,6 +76,7 @@ public void OnMapStart ( ) {
 
 /* EVENTS */
 public void Event_RoundStart(Event event, const char[] name, bool dontBroadcast) {
+    ServerCommand("exec sourcemod/osgameanalyzer.cfg");
     round = (GetTeamScore ( CS_TEAM_T ) + GetTeamScore ( CS_TEAM_CT ) + 1);
     GetCurrentMap(map, sizeof(map));
     resetPlayers();
@@ -144,6 +153,9 @@ public void Event_PlayerHurt(Event event, const char[] name, bool dontBroadcast)
 }
 
 public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast) {
+    if ( osga_enabled.IntValue != 1 ) {
+        return;
+    }
     int killer = GetClientOfUserId(GetEventInt(event, "attacker"));
     int victim = GetClientOfUserId(GetEventInt(event, "userid"));
     int kTeam = GetClientTeam(killer);
@@ -237,16 +249,6 @@ public void checkConnection() {
     }
 }
 
-/* return true if player is real */
-public bool playerIsReal(int player) {
-    return true;
-//    return (player > 0 &&
-//            player <= MAXPLAYERS &&
-//            IsClientInGame(player) &&
-//            ! IsFakeClient(player) &&
-//            ! IsClientSourceTV(player));
-}
-
 /* isWarmup */
 public bool isWarmup() {
     if (GameRules_GetProp("m_bWarmupPeriod") == 1) {
@@ -288,7 +290,9 @@ public void analyzeKills() {
         for (int j = 0; j < count[i]; j++) {
             Format ( victim, sizeof(victim), "%s", killVictimNames[i][j] );
 
-            logkill ( i, j );
+            if ( enoughRealPlayers() ) {
+                logkill ( i, j );
+            }
             // Check for 3+ frags in a short amount of time
             if (killTimes[i][j] - lastFragTime <= 5) {
                 quickFrags++;
@@ -573,4 +577,32 @@ public Action SetServerName ( Handle timer ) {
     GetConVarString(FindConVar("hostname"), serverName, sizeof(serverName));
     PrintToServer("Server name: %s", serverName);
     return Plugin_Stop; // Stop the timer
+}
+
+public bool playerIsReal ( int client ) {
+    if ( client < 1 || client > MaxClients ) {
+        return false;
+    }
+    if ( IsClientInGame ( client ) &&
+         ! IsFakeClient ( client ) &&
+         ! IsClientSourceTV ( client ) ) {
+        return true;
+    }
+    return false;
+}
+
+public void checkRealPlayers ( ) {
+    numRealPlayers = 0;
+    for ( int i = 1; i <= MaxClients; i++ ) {
+        if ( playerIsReal ( i ) ) {
+            numRealPlayers++;
+        }
+    }
+}
+
+public bool enoughRealPlayers ( ) {
+    if ( numRealPlayers >= osga_statsminplayers.IntValue ) {
+        return true;
+    }
+    return false;
 }
