@@ -586,6 +586,7 @@ public Action SetServerName ( Handle timer ) {
 }
 
 public bool playerIsReal ( int client ) {
+    return true;
     if ( client < 1 || client > MaxClients ) {
         return false;
     }
@@ -607,6 +608,7 @@ public void checkRealPlayers ( ) {
 }
 
 public bool enoughRealPlayers ( ) {
+    return true;
     if ( numRealPlayers >= osga_statsminplayers.IntValue ) {
         return true;
     }
