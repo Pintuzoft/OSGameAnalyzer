@@ -193,10 +193,16 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
         victimSteamid = "BOT";
     }
 
-    killKillerNames[killer][count[killer]] = killerName;
-    killKillerSteamids[killer][count[killer]] = killerSteamid;
-    killVictimNames[killer][count[killer]] = victimName;
-    killVictimSteamids[killer][count[killer]] = victimSteamid;
+    strcopy ( killKillerNames[killer][count[killer]], sizeof(killerName), killerName );
+    strcopy ( killKillerSteamids[killer][count[killer]], sizeof(killerSteamid), killerSteamid );
+    strcopy ( killVictimNames[killer][count[killer]], sizeof(victimName), victimName );
+    strcopy ( killVictimSteamids[killer][count[killer]], sizeof(victimSteamid), victimSteamid );
+
+
+//    killKillerNames[killer][count[killer]] = killerName;
+//    killKillerSteamids[killer][count[killer]] = killerSteamid;
+//    killVictimNames[killer][count[killer]] = victimName;
+//    killVictimSteamids[killer][count[killer]] = victimSteamid;
 
     killTimes[killer][count[killer]] = GetTime();
 
