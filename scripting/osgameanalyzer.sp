@@ -83,9 +83,9 @@ public void Event_RoundStart(Event event, const char[] name, bool dontBroadcast)
     resetGrenades();
 }
 public void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast) {
-//    if ( ! isWarmup ( ) ) {
+    if ( ! isWarmup ( ) ) {
         analyzeKills();
-//    }
+    }
 }
 
 public void Event_GrenadeThrown(Event event, const char[] name, bool dontBroadcast) {
@@ -153,7 +153,7 @@ public void Event_PlayerHurt(Event event, const char[] name, bool dontBroadcast)
 }
 
 public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast) {
-    if ( osga_enabled.IntValue != 1 ) {
+    if ( ! osga_enabled.BoolValue ) {
         return;
     }
     int killer = GetClientOfUserId(GetEventInt(event, "attacker"));
@@ -165,9 +165,9 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
     char killerSteamid[64];
     char victimSteamid[64];
 
-//    if (!playerIsReal(killer) || !playerIsReal(victim)) {
-//        return;
-//    }
+    if (!playerIsReal(killer) || !playerIsReal(victim)) {
+        return;
+    }
 
     char weapon[64];
     GetEventString(event, "weapon", weapon, sizeof(weapon));
