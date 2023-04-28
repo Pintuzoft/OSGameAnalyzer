@@ -158,16 +158,21 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
     }
     int killer = GetClientOfUserId(GetEventInt(event, "attacker"));
     int victim = GetClientOfUserId(GetEventInt(event, "userid"));
-    int kTeam = GetClientTeam(killer);
+    int kTeam;
+    if ( killer > 0) {
+        kTeam = GetClientTeam(killer);
+    } else {
+        kTeam = 0;
+    }
     int vTeam = GetClientTeam(victim);
     char killerName[64];
     char victimName[64];
     char killerSteamid[64];
     char victimSteamid[64];
 
-    if (!playerIsReal(killer) || !playerIsReal(victim)) {
-        return;
-    }
+//    if (!playerIsReal(killer) || !playerIsReal(victim)) {
+//        return;
+//    }
 
     char weapon[64];
     GetEventString(event, "weapon", weapon, sizeof(weapon));
@@ -263,8 +268,7 @@ public bool isWarmup() {
     return false;
 }
 
-bool IsValidBombEntity(int entityIndex)
-{
+bool IsValidBombEntity(int entityIndex) {
     // Check for valid entity index
     if (entityIndex <= 0) {
         return false;
@@ -401,7 +405,6 @@ public void analyzeKills() {
     | victim | varchar(64)  | YES  |     | NULL    |       |
     | info   | varchar(128) | YES  |     | NULL    |       |
     +--------+--------------+------+-----+---------+-------+
-
  */
 
 /* Log event */
@@ -479,8 +482,6 @@ public void logkill ( int killer, int killid ) {
     if ( killTimes[killer][killid] == 0 ) {
         return;
     }
-
-
 
     killerName = killKillerNames[killer][killid];
     victimName = killVictimNames[killer][killid];
@@ -585,10 +586,9 @@ public Action SetServerName ( Handle timer ) {
 }
 
 public bool playerIsReal ( int client ) {
-    if ( client < 1 || client > MaxClients ) {
-        return false;
-    }
-    if ( IsClientInGame ( client ) &&
+    if ( client > 0 &&
+         client <= MaxClients &&
+         IsClientInGame ( client ) &&
          ! IsFakeClient ( client ) &&
          ! IsClientSourceTV ( client ) ) {
         return true;
