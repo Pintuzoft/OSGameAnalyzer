@@ -81,6 +81,7 @@ public void Event_RoundStart(Event event, const char[] name, bool dontBroadcast)
     GetCurrentMap(map, sizeof(map));
     resetPlayers();
     resetGrenades();
+    checkRealPlayers();
 }
 public void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast) {
     if ( ! isWarmup ( ) ) {
@@ -599,6 +600,9 @@ public bool playerIsReal ( int client ) {
 }
 
 public void checkRealPlayers ( ) {
+
+
+
     numRealPlayers = 0;
     for ( int i = 1; i <= MaxClients; i++ ) {
         if ( playerIsReal ( i ) ) {
