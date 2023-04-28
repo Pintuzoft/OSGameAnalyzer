@@ -608,8 +608,13 @@ public void checkRealPlayers ( ) {
 }
 
 public bool enoughRealPlayers ( ) {
+    PrintToConsoleAll("numRealPlayers: %d", numRealPlayers);
+    PrintToConsoleAll("osga_statsminplayers: %d", osga_statsminplayers.IntValue);
+
     if ( numRealPlayers >= osga_statsminplayers.IntValue ) {
+        PrintToChatAll("OSGameAnalyzer: Enough real players to start analyzing.");
         return true;
     }
+    PrintToChatAll("OSGameAnalyzer: Not enough real players to start analyzing.");
     return false;
 }
