@@ -171,10 +171,6 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
     char killerSteamid[64];
     char victimSteamid[64];
 
-//    if (!playerIsReal(killer) || !playerIsReal(victim)) {
-//        return;
-//    }
-
     char weapon[64];
     GetEventString(event, "weapon", weapon, sizeof(weapon));
 
@@ -203,12 +199,6 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
     strcopy ( killKillerSteamids[killer][count[killer]], sizeof(killerSteamid), killerSteamid );
     strcopy ( killVictimNames[killer][count[killer]], sizeof(victimName), victimName );
     strcopy ( killVictimSteamids[killer][count[killer]], sizeof(victimSteamid), victimSteamid );
-
-
-//    killKillerNames[killer][count[killer]] = killerName;
-//    killKillerSteamids[killer][count[killer]] = killerSteamid;
-//    killVictimNames[killer][count[killer]] = victimName;
-//    killVictimSteamids[killer][count[killer]] = victimSteamid;
 
     killTimes[killer][count[killer]] = GetTime();
 
@@ -300,12 +290,9 @@ public void analyzeKills() {
 
         for (int j = 0; j < count[i]; j++) {
             Format ( victim, sizeof(victim), "%s", killVictimNames[i][j] );
-PrintToConsoleAll ("0");
             if ( enoughRealPlayers() ) {
-PrintToConsoleAll ("1");
                 logkill ( i, j );
             }
-PrintToConsoleAll ("2");
             // Check for 3+ frags in a short amount of time
             if (killTimes[i][j] - lastFragTime <= 5) {
                 quickFrags++;
@@ -556,6 +543,9 @@ public void resetPlayers() {
             killIsSuicide[i][j] = false;
             killIsImpact[i][j] = false;
             killIsNoScope[i][j] = false;
+            killPenetrated[i][j] = false;
+            killIsThrusmoke[i][j] = false;
+            killIsBlinded[i][j] = false;
         }
         lastHitDamage[i] = 0;
     }
@@ -600,9 +590,6 @@ public bool playerIsReal ( int client ) {
 }
 
 public void checkRealPlayers ( ) {
-
-
-
     numRealPlayers = 0;
     for ( int i = 1; i <= MaxClients; i++ ) {
         if ( playerIsReal ( i ) ) {
@@ -612,13 +599,8 @@ public void checkRealPlayers ( ) {
 }
 
 public bool enoughRealPlayers ( ) {
-    PrintToConsoleAll("numRealPlayers: %d", numRealPlayers);
-    PrintToConsoleAll("osga_statsminplayers: %d", osga_statsminplayers.IntValue);
-
     if ( numRealPlayers >= osga_statsminplayers.IntValue ) {
-        PrintToChatAll("OSGameAnalyzer: Enough real players to start analyzing.");
         return true;
     }
-    PrintToChatAll("OSGameAnalyzer: Not enough real players to start analyzing.");
     return false;
 }
