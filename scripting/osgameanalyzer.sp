@@ -153,22 +153,36 @@ public void Event_PlayerHurt(Event event, const char[] name, bool dontBroadcast)
 }
 
 public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast) {
+    PrintToConsoleAll ("0");
     if ( ! osga_enabled.BoolValue ) {
+    PrintToConsoleAll ("1");
         return;
     }
+    PrintToConsoleAll ("2");
     int killer = GetClientOfUserId(GetEventInt(event, "attacker"));
+    PrintToConsoleAll ("3");
     int victim = GetClientOfUserId(GetEventInt(event, "userid"));
+    PrintToConsoleAll ("4");
     int kTeam;
+    PrintToConsoleAll ("5");
     if ( killer > 0) {
+    PrintToConsoleAll ("6");
         kTeam = GetClientTeam(killer);
     } else {
+    PrintToConsoleAll ("7");
         kTeam = 0;
     }
+    PrintToConsoleAll ("8");
     int vTeam = GetClientTeam(victim);
+    PrintToConsoleAll ("9");
     char killerName[64];
+    PrintToConsoleAll ("10");
     char victimName[64];
+    PrintToConsoleAll ("11");
     char killerSteamid[64];
+    PrintToConsoleAll ("12");
     char victimSteamid[64];
+    PrintToConsoleAll ("13");
 
 //    if (!playerIsReal(killer) || !playerIsReal(victim)) {
 //        return;
@@ -176,32 +190,45 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 
     char weapon[64];
     GetEventString(event, "weapon", weapon, sizeof(weapon));
+    PrintToConsoleAll ("14");
 
     // Get the inflictor entity index
     int inflictorEntity = GetEventInt(event, "inflictor");
+    PrintToConsoleAll ("15");
 
     // Check if the weapon is the "c4" (bomb) and the inflictor entity is a valid bomb entity
     if (StrEqual(weapon, "world") && IsValidBombEntity(inflictorEntity)) {
+    PrintToConsoleAll ("16");
         return;
     }
+    PrintToConsoleAll ("17");
 
     GetClientName(killer, killerName, sizeof(killerName));
+    PrintToConsoleAll ("18");
     GetClientName(victim, victimName, sizeof(victimName));
+    PrintToConsoleAll ("19");
     if ( killer > 0 ) {
+    PrintToConsoleAll ("20");
         GetClientAuthId(killer, AuthId_Steam2, killerSteamid, sizeof(killerSteamid));
     } else {
+    PrintToConsoleAll ("21");
         killerSteamid = "BOT";
     }
+    PrintToConsoleAll ("22");
     if ( victim > 0 ) {
+    PrintToConsoleAll ("23");
         GetClientAuthId(victim, AuthId_Steam2, victimSteamid, sizeof(victimSteamid));
     } else {
+    PrintToConsoleAll ("24");
         victimSteamid = "BOT";
     }
+    PrintToConsoleAll ("25");
 
     strcopy ( killKillerNames[killer][count[killer]], sizeof(killerName), killerName );
     strcopy ( killKillerSteamids[killer][count[killer]], sizeof(killerSteamid), killerSteamid );
     strcopy ( killVictimNames[killer][count[killer]], sizeof(victimName), victimName );
     strcopy ( killVictimSteamids[killer][count[killer]], sizeof(victimSteamid), victimSteamid );
+    PrintToConsoleAll ("26");
 
 
 //    killKillerNames[killer][count[killer]] = killerName;
@@ -210,11 +237,14 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 //    killVictimSteamids[killer][count[killer]] = victimSteamid;
 
     killTimes[killer][count[killer]] = GetTime();
+    PrintToConsoleAll ("27");
 
 
     strcopy(killWeapons[killer][count[killer]], sizeof(weapon), weapon);
+    PrintToConsoleAll ("28");
 
     killIsHeadShot[killer][count[killer]] = GetEventBool(event, "headshot");
+    PrintToConsoleAll ("29");
 
     killIsSuicide[killer][count[killer]] = killer == victim;
     killIsTeamKill[killer][count[killer]] = (kTeam == vTeam && killer != victim);
@@ -222,6 +252,7 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
     killIsThrusmoke[killer][count[killer]] = GetEventBool(event, "thrusmoke");
     killPenetrated[killer][count[killer]] = GetEventBool(event, "penetrated");
     killIsImpact[killer][count[killer]] = false;
+    PrintToConsoleAll ("30");
 
     if ( isWeapon ( weapon, "hegrenade" ) || 
          isWeapon ( weapon, "flashbang" ) || 
